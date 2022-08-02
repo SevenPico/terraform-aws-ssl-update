@@ -13,7 +13,14 @@ def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
 
-    acm_import()
+    if config.secret_arn is not None:
+        acm_import()
+
+    if config.ssm_ssl_update_command is not None:
+        ssm_ssl_update_command()
+
+    if config.ecs_cluster_arn is not None:
+        ecs_service_update()
 
 
 def load_secret():
@@ -55,10 +62,52 @@ def acm_import():
     # ACM.Client.exceptions.InvalidParameterException
     # ACM.Client.exceptions.InvalidArnException
 
-def ecs_task_restart():
-    pass
+def ssm_ssl_update_command():
+    client = session.client('ssm')
 
-def ssm_ssl_command():
-    pass
+    response = client.send_command(
+        DocumentName='AWS-RunShellScript',
+        Targets=[{
+            'Key': config.ssm_target_key,
+            'Values': [config.ssm_target_value] # TODO - support array here?
+        }],
+        Parameters={
+            'commands': [config.ssl_update_command]
+        },
+    )
+
+    # FIXME - handle
+    # SSM.Client.exceptions.DuplicateInstanceId
+    # SSM.Client.exceptions.InternalServerError
+    # SSM.Client.exceptions.InvalidInstanceId
+    # SSM.Client.exceptions.InvalidDocument
+    # SSM.Client.exceptions.InvalidDocumentVersion
+    # SSM.Client.exceptions.InvalidOutputFolder
+    # SSM.Client.exceptions.InvalidParameters
+    # SSM.Client.exceptions.UnsupportedPlatformType
+    # SSM.Client.exceptions.MaxDocumentSizeExceeded
+    # SSM.Client.exceptions.InvalidRole
+    # SSM.Client.exceptions.InvalidNotificationConfig
+
+
+def ecs_service_update():
+    client = session.client('ecs')
+
+    for service in config.ecs_service_arns:
+        response = client.update_service(
+            cluster='string',
+            service='string',
+            forceNewDeployment=True
+            ]
+        )
+
+    # FIXME - handle
+    # ECS.Client.exceptions.ServerException
+    # ECS.Client.exceptions.ClientException
+    # ECS.Client.exceptions.InvalidParameterException
+    # ECS.Client.exceptions.ClusterNotFoundException
+    # ECS.Client.exceptions.ServiceNotFoundException
+
+    task_arns = response['taskArns']
 
 lambda_handler(None, None)

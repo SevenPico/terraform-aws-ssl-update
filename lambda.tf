@@ -40,7 +40,8 @@ module "lambda" {
 
   lambda_environment = {
     variables = {
-      SECRET_ARN : var.secret_arn
+      SECRET_ARN: var.secret_arn
+      SSM_SSL_UPDATE_COMMAND: var.ssm_ssl_update_command
       ACM_CERTIFICATE_ARN: var.acm_certificate_arn
       KEYNAME_CERTIFICATE: var.keyname_certificate
       KEYNAME_PRIVATE_KEY: var.keyname_private_key
