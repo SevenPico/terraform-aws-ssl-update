@@ -6,6 +6,10 @@ variable "secret_arn" {
   type = string
 }
 
+variable "sns_topic_arn" {
+  type = string
+}
+
 variable "acm_certificate_arn" {
   type = string
 }

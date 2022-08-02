@@ -1,16 +1,20 @@
 import boto3
 import json
+import logging
 
 import config
+
+logging.basicConfig(level=logging.INFO)
 
 config = config.Config()
 session = boto3.Session()
 
-def main():
-    print(load_secret())
+def lambda_handler(event, context):
+    logging.info(event)
+    logging.info(context)
 
-# def lambda_handler(event, context):
-#     print(config)
+    acm_import()
+
 
 def load_secret():
     client = session.client('secretsmanager')
@@ -56,3 +60,5 @@ def ecs_task_restart():
 
 def ssm_ssl_command():
     pass
+
+lambda_handler(None, None)

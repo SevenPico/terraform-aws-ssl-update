@@ -41,6 +41,10 @@ module "lambda" {
   lambda_environment = {
     variables = {
       SECRET_ARN : var.secret_arn
+      ACM_CERTIFICATE_ARN: var.acm_certificate_arn
+      KEYNAME_CERTIFICATE: var.keyname_certificate
+      KEYNAME_PRIVATE_KEY: var.keyname_private_key
+      KEYNAME_CERTIFICATE_CHAIN: var.keyname_certificate_chain
     }
   }
 }
@@ -54,14 +58,21 @@ data "archive_file" "lambda" {
 
 
 # ------------------------------------------------------------------------------
+# Lambda SNS Subscription
 # ------------------------------------------------------------------------------
-# resource "aws_lambda_permission" "FIXME" {
-#   count         = module.this.enabled ? 1 : 0
-#   statement_id  = "FIXME"
-#   action        = "lambda:InvokeFunction"
-#   function_name = module.lambda.function_name
-#   principal     = FIXME
-# }
+resource "aws_sns_topic_subscription" "lambda" {
+  endpoint  = module.lambda.arn
+  protocol  = "lambda"
+  topic_arn = var.sns_topic_arn
+}
+
+resource "aws_lambda_permission" "sns" {
+  action        = "lambda:InvokeFunction"
+  function_name = module.lambda.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = var.sns_topic_arn
+  statement_id  = "AllowExecutionFromSNS"
+}
 
 
 # ------------------------------------------------------------------------------
@@ -102,6 +113,18 @@ data "aws_iam_policy_document" "lambda" {
     #   values = [FIXME]
     # }
   }
+  statement {
+    effect = "Allow"
+    actions = [
+      "acm:ImportCertificate"
+    ]
+    resources = [var.acm_certificate_arn]
+    # condition {
+    #   test = "StringLike"
+    #   variable = "ssm:resourceTag/Name"
+    #   values = [FIXME]
+    # }
+  }
 }
 
 resource "aws_iam_policy" "lambda" {
@@ -112,6 +135,6 @@ resource "aws_iam_policy" "lambda" {
 
 resource "aws_iam_role_policy_attachment" "lambda" {
   count      = module.this.enabled ? 1 : 0
-  role       = module.lambda.role_arn #"${module.this.id}-role"
+  role       = "${module.this.id}-role"
   policy_arn = one(aws_iam_policy.lambda[*].arn)
 }
