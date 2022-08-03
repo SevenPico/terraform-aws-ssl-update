@@ -2,18 +2,19 @@ import os
 import logging
 from dataclasses import dataclass
 
-def get_required_var(name):
-    try:
-        return os.environ[name]
-    except KeyError:
-        logging.critical(f"Environment variable {name} not set.")
-
 def get_optional_var(name, default=None):
     try:
         return os.environ[name]
     except KeyError:
         logging.warn(f"Environment variable {name} not set. Using default: {default}")
         return default
+
+def get_required_var(name):
+    try:
+        return os.environ[name]
+    except KeyError:
+        logging.critical(f"Environment variable {name} not set.")
+
 
 @dataclass
 class Config:
@@ -27,5 +28,5 @@ class Config:
     ssm_target_key            = get_optional_var('SSM_TARGET_KEY')
     ssm_target_values         = get_optional_var('SSM_TARGET_VALUES', [])
 
+    ecs_cluster_arn           = get_optional_var('ECS_CLUSTER_ARN')
     ecs_service_arns          = get_optional_var('ECS_SERVICE_ARNS', [])
-    ecs_cluster_arn           = get_optional_var('ECS_SERVICE_ARNS')

@@ -1,4 +1,5 @@
 # ------------------------------------------------------------------------------
+# SSL Update Lambda
 # ------------------------------------------------------------------------------
 module "lambda" {
   source  = "app.terraform.io/SevenPico/lambda-function/aws"
@@ -39,14 +40,24 @@ module "lambda" {
   vpc_config                          = null
 
   lambda_environment = {
-    variables = {
-      SECRET_ARN: var.secret_arn
-      SSM_SSL_UPDATE_COMMAND: var.ssm_ssl_update_command
-      ACM_CERTIFICATE_ARN: var.acm_certificate_arn
-      KEYNAME_CERTIFICATE: var.keyname_certificate
-      KEYNAME_PRIVATE_KEY: var.keyname_private_key
-      KEYNAME_CERTIFICATE_CHAIN: var.keyname_certificate_chain
-    }
+    variables = merge(
+      var.acm_enabled ? {
+        SECRET_ARN: var.secret_arn
+        ACM_CERTIFICATE_ARN: var.acm_certificate_arn
+        KEYNAME_CERTIFICATE: var.keyname_certificate
+        KEYNAME_PRIVATE_KEY: var.keyname_private_key
+        KEYNAME_CERTIFICATE_CHAIN: var.keyname_certificate_chain
+      } : {},
+      var.ssm_enabled ? {
+        SSM_SSL_UPDATE_COMMAND: var.ssm_ssl_update_command
+        SSM_TARGET_KEY: var.ssm_target_key
+        SSM_TARGET_VALUES: join(",", var.ssm_target_values)
+      } : {},
+      var.ecs_enabled ? {
+        ECS_CLUSTER_ARN: var.ecs_cluster_arn
+        ECS_SERVICE_ARNS: join(",", var.ecs_service_arns)
+      } : {},
+    )
   }
 }
 
@@ -79,63 +90,71 @@ resource "aws_lambda_permission" "sns" {
 # ------------------------------------------------------------------------------
 # Lambda IAM
 # ------------------------------------------------------------------------------
-data "aws_iam_policy_document" "lambda" {
-  count = module.this.enabled ? 1 : 0
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue",
-      "secretsmanager:DescribeSecret",
-    ]
-    resources = [
-      var.secret_arn
-    ]
-  }
-  statement {
-    effect = "Allow"
-    actions = [
-      "kms:Decrypt",
-      "kms:DescribeKey",
-    ]
-    resources = [
-      var.kms_key_arn
-    ]
-  }
-  statement {
-    effect = "Allow"
-    actions = [
-      "ssm:SendCommand",
-    ]
-    resources = ["*"]
-    # condition {
-    #   test = "StringLike"
-    #   variable = "ssm:resourceTag/Name"
-    #   values = [FIXME]
-    # }
-  }
-  statement {
-    effect = "Allow"
-    actions = [
-      "acm:ImportCertificate"
-    ]
-    resources = [var.acm_certificate_arn]
-    # condition {
-    #   test = "StringLike"
-    #   variable = "ssm:resourceTag/Name"
-    #   values = [FIXME]
-    # }
-  }
-}
-
-resource "aws_iam_policy" "lambda" {
-  count  = module.this.enabled ? 1 : 0
-  name   = "${module.this.id}-lambda"
-  policy = one(data.aws_iam_policy_document.lambda[*].json)
-}
-
 resource "aws_iam_role_policy_attachment" "lambda" {
   count      = module.this.enabled ? 1 : 0
   role       = "${module.this.id}-role"
-  policy_arn = one(aws_iam_policy.lambda[*].arn)
+  policy_arn = module.lambda_policy.policy_arn
+}
+
+module "lambda_policy" {
+  source  = "cloudposse/iam-policy/aws"
+  version = "0.4.0"
+  context = module.this.context
+
+  description                   = "SSL Update Lambda Access Policy"
+  iam_override_policy_documents = null
+  iam_policy_enabled            = true
+  iam_policy_id                 = null
+  iam_source_json_url           = null
+  iam_source_policy_documents   = null
+
+  iam_policy_statements = merge(
+    var.acm_enabled ? {
+      SecretRead = {
+        effect = "Allow"
+        actions = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+        ]
+        resources = [var.secret_arn]
+      }
+
+      SecretDecrypt = {
+        effect = "Allow"
+        actions = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+        ]
+        resources = [var.kms_key_arn]
+      }
+
+      ACMImport = {
+        effect = "Allow"
+        actions = [
+          "acm:ImportCertificate"
+        ]
+        resources = [var.acm_certificate_arn]
+      }
+    } : {},
+
+    var.ssm_enabled ? {
+      SSMSendCommand = {
+        effect = "Allow"
+        actions = [
+          "ssm:SendCommand",
+        ]
+        resources = ["*"] # FIXME - can this be limited?
+      }
+    } : {},
+
+    var.ecs_enabled ? {
+      ECSUpdateService = {
+        effect = "Allow"
+        actions = [
+          "ecs:UpdateService"
+        ]
+        resources = var.ecs_service_arns
+      }
+    } : {}
+  )
 }

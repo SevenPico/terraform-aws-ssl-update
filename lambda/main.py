@@ -14,17 +14,28 @@ def lambda_handler(event, context):
     logging.info(context)
 
     if config.secret_arn is not None:
+        logging.info('Re-importing ACM certificate')
         acm_import()
+    else:
+        logging.warn("ACM certificate import not enabled")
 
     if config.ssm_ssl_update_command is not None:
+        logging.info('Issuing SSM SSL certificate update commands')
         ssm_ssl_update_command()
+    else:
+        logging.warn("SSM SSL certificate update commands not enabled")
 
     if config.ecs_cluster_arn is not None:
+        logging.info('Starting ECS service updates')
         ecs_service_update()
+    else:
+        logging.warn("ECS service updates not enabled")
 
 
 def load_secret():
     client = session.client('secretsmanager')
+
+    logging.info(f"Reading secret: {config.secret_arn}")
     secret_value = client.get_secret_value(SecretId=config.secret_arn)
 
     # FIXME - handle
@@ -34,6 +45,7 @@ def load_secret():
     # SecretsManager.Client.exceptions.DecryptionFailure
     # SecretsManager.Client.exceptions.InternalServiceError
 
+    logging.info(f"Parsing secret: {config.secret_arn}")
     secret = json.loads(secret_value['SecretString'])
 
     cert        = secret[config.keyname_certificate]
@@ -44,6 +56,7 @@ def load_secret():
 
 def acm_import():
     client = session.client('acm')
+
     cert, private_key, cert_chain = load_secret()
 
     client.import_certificate(
@@ -69,7 +82,7 @@ def ssm_ssl_update_command():
         DocumentName='AWS-RunShellScript',
         Targets=[{
             'Key': config.ssm_target_key,
-            'Values': [config.ssm_target_value] # TODO - support array here?
+            'Values': config.ssm_target_values
         }],
         Parameters={
             'commands': [config.ssl_update_command]
@@ -93,12 +106,12 @@ def ssm_ssl_update_command():
 def ecs_service_update():
     client = session.client('ecs')
 
-    for service in config.ecs_service_arns:
+    for service_arn in config.ecs_service_arns:
+        logging.info(f"Updating ECS service: {service_arn}")
         response = client.update_service(
-            cluster='string',
-            service='string',
+            cluster=config.ecs_cluster_arn
+            service=service_arn
             forceNewDeployment=True
-            ]
         )
 
     # FIXME - handle
@@ -107,7 +120,5 @@ def ecs_service_update():
     # ECS.Client.exceptions.InvalidParameterException
     # ECS.Client.exceptions.ClusterNotFoundException
     # ECS.Client.exceptions.ServiceNotFoundException
-
-    task_arns = response['taskArns']
 
 lambda_handler(None, None)
