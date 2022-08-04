@@ -17,19 +17,19 @@ def lambda_handler(event, context):
         logging.info('Re-importing ACM certificate')
         acm_import()
     else:
-        logging.warn("ACM certificate import not enabled")
+        logging.warning("ACM certificate import not enabled")
 
     if config.ssm_ssl_update_command is not None:
         logging.info('Issuing SSM SSL certificate update commands')
         ssm_ssl_update_command()
     else:
-        logging.warn("SSM SSL certificate update commands not enabled")
+        logging.warning("SSM SSL certificate update commands not enabled")
 
     if config.ecs_cluster_arn is not None:
         logging.info('Starting ECS service updates')
         ecs_service_update()
     else:
-        logging.warn("ECS service updates not enabled")
+        logging.warning("ECS service updates not enabled")
 
 
 def load_secret():
@@ -85,7 +85,7 @@ def ssm_ssl_update_command():
             'Values': config.ssm_target_values
         }],
         Parameters={
-            'commands': [config.ssl_update_command]
+            'commands': [config.ssm_ssl_update_command]
         },
     )
 
@@ -109,8 +109,8 @@ def ecs_service_update():
     for service_arn in config.ecs_service_arns:
         logging.info(f"Updating ECS service: {service_arn}")
         response = client.update_service(
-            cluster=config.ecs_cluster_arn
-            service=service_arn
+            cluster=config.ecs_cluster_arn,
+            service=service_arn,
             forceNewDeployment=True
         )
 

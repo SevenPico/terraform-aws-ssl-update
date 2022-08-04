@@ -26,7 +26,7 @@ class Config:
 
     ssm_ssl_update_command    = get_optional_var('SSM_SSL_UPDATE_COMMAND')
     ssm_target_key            = get_optional_var('SSM_TARGET_KEY')
-    ssm_target_values         = get_optional_var('SSM_TARGET_VALUES', [])
+    ssm_target_values         = get_optional_var('SSM_TARGET_VALUES', "").split(',')
 
     ecs_cluster_arn           = get_optional_var('ECS_CLUSTER_ARN')
-    ecs_service_arns          = get_optional_var('ECS_SERVICE_ARNS', [])
+    ecs_service_arns          = get_optional_var('ECS_SERVICE_ARNS', "").split(',')
