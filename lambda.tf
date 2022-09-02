@@ -42,20 +42,20 @@ module "lambda" {
   lambda_environment = {
     variables = merge(
       var.acm_enabled ? {
-        SECRET_ARN: var.secret_arn
-        ACM_CERTIFICATE_ARN: var.acm_certificate_arn
-        KEYNAME_CERTIFICATE: var.keyname_certificate
-        KEYNAME_PRIVATE_KEY: var.keyname_private_key
-        KEYNAME_CERTIFICATE_CHAIN: var.keyname_certificate_chain
+        SECRET_ARN : var.secret_arn
+        ACM_CERTIFICATE_ARN : var.acm_certificate_arn
+        KEYNAME_CERTIFICATE : var.keyname_certificate
+        KEYNAME_PRIVATE_KEY : var.keyname_private_key
+        KEYNAME_CERTIFICATE_CHAIN : var.keyname_certificate_chain
       } : {},
       var.ssm_enabled ? {
-        SSM_SSL_UPDATE_COMMAND: var.ssm_ssl_update_command
-        SSM_TARGET_KEY: var.ssm_target_key
-        SSM_TARGET_VALUES: join(",", var.ssm_target_values)
+        SSM_SSL_UPDATE_COMMAND : var.ssm_ssl_update_command
+        SSM_TARGET_KEY : var.ssm_target_key
+        SSM_TARGET_VALUES : join(",", var.ssm_target_values)
       } : {},
       var.ecs_enabled ? {
-        ECS_CLUSTER_ARN: var.ecs_cluster_arn
-        ECS_SERVICE_ARNS: join(",", var.ecs_service_arns)
+        ECS_CLUSTER_ARN : var.ecs_cluster_arn
+        ECS_SERVICE_ARNS : join(",", var.ecs_service_arns)
       } : {},
     )
   }
@@ -92,6 +92,8 @@ resource "aws_lambda_permission" "sns" {
 # ------------------------------------------------------------------------------
 resource "aws_iam_role_policy_attachment" "lambda" {
   count      = module.this.enabled ? 1 : 0
+  depends_on = [module.lambda]
+
   role       = "${module.this.id}-role"
   policy_arn = module.lambda_policy.policy_arn
 }
