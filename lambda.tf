@@ -33,7 +33,7 @@ module "lambda" {
   s3_key                              = null
   s3_object_version                   = null
   sns_subscriptions                   = {}
-  source_code_hash                    = one(data.archive_file.lambda[*].output_sha)
+  source_code_hash                    = one(data.archive_file.lambda[*].output_base64sha256)
   ssm_parameter_names                 = null
   timeout                             = 3
   tracing_config_mode                 = null
