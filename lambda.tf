@@ -2,9 +2,9 @@
 # SSL Update Lambda
 # ------------------------------------------------------------------------------
 module "lambda" {
-  source  = "app.terraform.io/SevenPico/lambda-function/aws"
-  version = "0.1.0.2"
-  context = module.this.context
+  source  = "SevenPicoForks/lambda-function/aws"
+  version = "2.0.1"
+  context = module.context.self
 
   architectures                       = null
   cloudwatch_event_rules              = {}
@@ -14,8 +14,8 @@ module "lambda" {
   cloudwatch_log_subscription_filters = {}
   description                         = "Update ACM, ECS, and EC2 with SSl certificate from secret."
   event_source_mappings               = {}
-  filename                            = one(data.archive_file.lambda[*].output_path)
-  function_name                       = module.this.id
+  filename                            = try(data.archive_file.lambda[0].output_path, "")
+  function_name                       = module.context.id
   handler                             = "main.lambda_handler"
   ignore_external_function_updates    = false
   image_config                        = {}
@@ -27,13 +27,13 @@ module "lambda" {
   package_type                        = "Zip"
   publish                             = false
   reserved_concurrent_executions      = -1
-  role_name                           = "${module.this.id}-role"
+  role_name                           = "${module.context.id}-role"
   runtime                             = "python3.9"
   s3_bucket                           = null
   s3_key                              = null
   s3_object_version                   = null
   sns_subscriptions                   = {}
-  source_code_hash                    = one(data.archive_file.lambda[*].output_base64sha256)
+  source_code_hash                    = try(data.archive_file.lambda[0].output_base64sha256, "")
   ssm_parameter_names                 = null
   timeout                             = 3
   tracing_config_mode                 = null
@@ -62,7 +62,7 @@ module "lambda" {
 }
 
 data "archive_file" "lambda" {
-  count       = module.this.enabled ? 1 : 0
+  count       = module.context.enabled ? 1 : 0
   type        = "zip"
   source_dir  = "${path.module}/lambda"
   output_path = "${path.module}/.build/lambda.zip"
@@ -91,17 +91,17 @@ resource "aws_lambda_permission" "sns" {
 # Lambda IAM
 # ------------------------------------------------------------------------------
 resource "aws_iam_role_policy_attachment" "lambda" {
-  count      = module.this.enabled ? 1 : 0
+  count      = module.context.enabled ? 1 : 0
   depends_on = [module.lambda]
 
-  role       = "${module.this.id}-role"
+  role       = "${module.context.id}-role"
   policy_arn = module.lambda_policy.policy_arn
 }
 
 module "lambda_policy" {
-  source  = "cloudposse/iam-policy/aws"
-  version = "0.4.0"
-  context = module.this.context
+  source  = "SevenPicoForks/iam-policy/aws"
+  version = "2.0.0"
+  context = module.context.self
 
   description                   = "SSL Update Lambda Access Policy"
   iam_override_policy_documents = null
