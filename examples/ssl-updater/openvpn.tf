@@ -81,6 +81,7 @@ module "openvpn" {
   enable_openvpn_backups     = true
   enable_ec2_cloudwatch_logs = true
 
+
   # Logging
   cloudwatch_logs_expiration_days = 30
 
@@ -146,7 +147,7 @@ module "openvpn" {
   openvpn_client_cidr_blocks              = ["172.27.0.0/16"]
   openvpn_client_dhcp_network             = "172.27.32.0"
   openvpn_client_dhcp_network_mask        = 20
-  openvpn_client_static_addresses_enabled = false
+  openvpn_client_static_addresses_enabled = true
   openvpn_client_static_network           = "172.27.64.0"
   openvpn_client_static_network_mask      = "20"
   openvpn_daemon_ingress_blocks           = ["0.0.0.0/0"]
