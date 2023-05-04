@@ -18,6 +18,13 @@
 ##  ./lambda.tf
 ##  This file contains code written by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
+locals {
+  ecs_update_enabled = try(length(var.ecs_cluster_arn), 0) > 0
+  adhoc_ssm_enabled  = try(length(var.ssm_adhoc_command), 0) > 0
+  named_ssm_enabled  = try(length(var.ssm_named_document), 0) > 0
+  acm_certificate_enabled = try(length(var.acm_certificate_arn), 0) > 0
+}
+
 
 # ------------------------------------------------------------------------------
 # SSL Update Lambda
@@ -139,7 +146,7 @@ module "lambda_policy" {
   iam_source_policy_documents   = null
 
   iam_policy_statements = merge(
-    var.acm_certificate_arn ? {
+    local.ecs_update_enabled ? {
       SecretRead = {
         effect = "Allow"
         actions = [
@@ -167,7 +174,7 @@ module "lambda_policy" {
       }
     } : {},
 
-    var.ssm_adhoc_command ? {
+    local.adhoc_ssm_enabled ? {
       SSMSendCommand = {
         effect = "Allow"
         actions = [
@@ -177,16 +184,16 @@ module "lambda_policy" {
       }
     } : {},
 
-    var.ecs_cluster_arn ? {
+    local.ecs_update_enabled ? {
       ECSUpdateService = {
         effect = "Allow"
         actions = [
           "ecs:UpdateService"
         ]
-        resources = var.ecs_service_arns
+        resources = [var.ecs_service_arns]
       }
     } : {},
-    var.ssm_named_document ? {
+    local.named_ssm_enabled ? {
       EC2SSLUpdate = {
         effect = "Allow"
         actions = [
