@@ -189,8 +189,10 @@ module "lambda_policy" {
     try(length(var.ssm_named_document), 0) > 0 ? {
       EC2SSLUpdate = {
         effect = "Allow"
-        actions = ["ssm:DescribeDocument",
-        "ssm:ExecuteDocument"]
+        actions = [
+          "ssm:DescribeDocument",
+          "ssm:ExecuteDocument",
+        ]
         resources = "${local.arn_prefix}:ssm:${local.region}:${local.account_id}:document/${var.ssm_named_document}"
       }
     } : {},
