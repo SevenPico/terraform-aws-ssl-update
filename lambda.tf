@@ -139,7 +139,7 @@ module "lambda_policy" {
   iam_source_policy_documents   = null
 
   iam_policy_statements = merge(
-    try(length(var.acm_certificate_arn), 0) > 0 ? {
+    var.acm_certificate_arn ? {
       SecretRead = {
         effect = "Allow"
         actions = [
@@ -167,7 +167,7 @@ module "lambda_policy" {
       }
     } : {},
 
-    try(length(var.ssm_adhoc_command), 0) > 0 ? {
+    var.ssm_adhoc_command ? {
       SSMSendCommand = {
         effect = "Allow"
         actions = [
@@ -177,7 +177,7 @@ module "lambda_policy" {
       }
     } : {},
 
-    try(length(var.ecs_cluster_arn), 0) > 0 ? {
+    var.ecs_cluster_arn ? {
       ECSUpdateService = {
         effect = "Allow"
         actions = [
@@ -186,7 +186,7 @@ module "lambda_policy" {
         resources = var.ecs_service_arns
       }
     } : {},
-    try(length(var.ssm_named_document), 0) > 0 ? {
+    var.ssm_named_document ? {
       EC2SSLUpdate = {
         effect = "Allow"
         actions = [
