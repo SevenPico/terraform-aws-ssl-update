@@ -146,34 +146,34 @@ module "lambda_policy" {
   iam_source_policy_documents   = null
 
   iam_policy_statements = merge(
-#    local.acm_certificate_enabled ? {
-#      SecretRead = {
-#        effect = "Allow"
-#        actions = [
-#          "secretsmanager:GetSecretValue",
-#          "secretsmanager:DescribeSecret",
-#        ]
-#        resources = [var.secret_arn]
-#      }
-#
-#      SecretDecrypt = {
-#        effect = "Allow"
-#        actions = [
-#          "kms:Decrypt",
-#          "kms:DescribeKey",
-#        ]
-#        resources = [var.kms_key_arn]
-#      }
-#
-#      ACMImport = {
-#        effect = "Allow"
-#        actions = [
-#          "acm:ImportCertificate"
-#        ]
-#        resources = [var.acm_certificate_arn]
-#      }
-#    } : {},
-#
+    local.acm_certificate_enabled ? {
+      SecretRead = {
+        effect = "Allow"
+        actions = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret",
+        ]
+        resources = [var.secret_arn]
+      }
+
+      SecretDecrypt = {
+        effect = "Allow"
+        actions = [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+        ]
+        resources = [var.kms_key_arn]
+      }
+
+      ACMImport = {
+        effect = "Allow"
+        actions = [
+          "acm:ImportCertificate"
+        ]
+        resources = [var.acm_certificate_arn]
+      }
+    } : {},
+
     local.adhoc_ssm_enabled ? {
       SSMSendCommand = {
         effect = "Allow"
