@@ -26,91 +26,80 @@ variable "sns_topic_arn" {
 }
 
 variable "cloudwatch_log_retention_days" {
-  type = number
+  type    = number
   default = 90
 }
 
 
 # ACM
-variable "acm_enabled" {
-  type = bool
-  default = false
-  description = "Re-import certificate to ACM on SNS notification."
-}
-
 variable "secret_arn" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Required if update_acm is true."
 }
 
 variable "kms_key_arn" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Required if update_acm is true."
 }
 
 variable "acm_certificate_arn" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Required if update_acm is true."
 }
 
 variable "keyname_certificate" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Required if update_acm is true."
 }
 
 variable "keyname_private_key" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Required if update_acm is true."
 }
 
 variable "keyname_certificate_chain" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Required if update_acm is true."
 }
 
 
 # SSM
-variable "ssm_enabled" {
-  type = bool
-  default = false
-  description = "Run ssm_ssl_update_command on selected instatnces on SNS notification."
+variable "ssm_adhoc_command" {
+  type        = string
+  default     = ""
+  description = "The shell script command that will be run in the SSM document AWS-RunShellScript."
 }
 
-variable "ssm_ssl_update_command" {
-  type = string
-  default = ""
+variable "ssm_named_document" {
+  type        = string
+  default     = ""
+  description = "The name of the SSM Document responsible for updating the SSL values."
 }
 
 variable "ssm_target_key" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "ssm_target_values" {
-  type = list(string)
+  type    = list(string)
   default = []
 }
 
 
 # ECS
-variable "ecs_enabled" {
-  type = bool
-  default = false
-  description = "Force update on selected ECS services on SNS notification."
-}
-
 variable "ecs_cluster_arn" {
-  type = string
+  type    = string
   default = ""
 }
 
 variable "ecs_service_arns" {
-  type = list(string)
+  type    = list(string)
   default = []
 }

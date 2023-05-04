@@ -62,19 +62,24 @@ module "lambda" {
 
   lambda_environment = {
     variables = merge(
-      var.acm_enabled ? {
+      try(length(var.acm_certificate_arn), 0) > 0 ? {
         SECRET_ARN : var.secret_arn
         ACM_CERTIFICATE_ARN : var.acm_certificate_arn
         KEYNAME_CERTIFICATE : var.keyname_certificate
         KEYNAME_PRIVATE_KEY : var.keyname_private_key
         KEYNAME_CERTIFICATE_CHAIN : var.keyname_certificate_chain
       } : {},
-      var.ssm_enabled ? {
-        SSM_SSL_UPDATE_COMMAND : var.ssm_ssl_update_command
+      try(length(var.ssm_adhoc_command), 0) > 0 ? {
+        SSM_SSL_UPDATE_COMMAND : var.ssm_adhoc_command
         SSM_TARGET_KEY : var.ssm_target_key
         SSM_TARGET_VALUES : join(",", var.ssm_target_values)
       } : {},
-      var.ecs_enabled ? {
+      try(length(var.ssm_named_document), 0) > 0 ? {
+        SSM_SSL_NAMED_DOCUMENT : var.ssm_named_document
+        SSM_TARGET_KEY : var.ssm_target_key
+        SSM_TARGET_VALUES : join(",", var.ssm_target_values)
+      } : {},
+      try(length(var.ecs_cluster_arn), 0) > 0 ? {
         ECS_CLUSTER_ARN : var.ecs_cluster_arn
         ECS_SERVICE_ARNS : join(",", var.ecs_service_arns)
       } : {},
@@ -94,14 +99,14 @@ data "archive_file" "lambda" {
 # Lambda SNS Subscription
 # ------------------------------------------------------------------------------
 resource "aws_sns_topic_subscription" "lambda" {
-  count       = module.context.enabled ? 1 : 0
+  count     = module.context.enabled ? 1 : 0
   endpoint  = module.lambda.arn
   protocol  = "lambda"
   topic_arn = var.sns_topic_arn
 }
 
 resource "aws_lambda_permission" "sns" {
-  count       = module.context.enabled ? 1 : 0
+  count         = module.context.enabled ? 1 : 0
   action        = "lambda:InvokeFunction"
   function_name = module.lambda.function_name
   principal     = "sns.amazonaws.com"
@@ -134,7 +139,7 @@ module "lambda_policy" {
   iam_source_policy_documents   = null
 
   iam_policy_statements = merge(
-    var.acm_enabled ? {
+    try(length(var.acm_certificate_arn), 0) > 0 ? {
       SecretRead = {
         effect = "Allow"
         actions = [
@@ -162,7 +167,7 @@ module "lambda_policy" {
       }
     } : {},
 
-    var.ssm_enabled ? {
+    try(length(var.ssm_adhoc_command), 0) > 0 ? {
       SSMSendCommand = {
         effect = "Allow"
         actions = [
@@ -172,7 +177,7 @@ module "lambda_policy" {
       }
     } : {},
 
-    var.ecs_enabled ? {
+    try(length(var.ecs_cluster_arn), 0) > 0 ? {
       ECSUpdateService = {
         effect = "Allow"
         actions = [
@@ -180,6 +185,14 @@ module "lambda_policy" {
         ]
         resources = var.ecs_service_arns
       }
-    } : {}
+    } : {},
+    try(length(var.ssm_named_document), 0) > 0 ? {
+      EC2SSLUpdate = {
+        effect = "Allow"
+        actions = ["ssm:DescribeDocument",
+        "ssm:ExecuteDocument"]
+        resources = "${local.arn_prefix}:ssm:${local.region}:${local.account_id}:document/${var.ssm_named_document}"
+      }
+    } : {},
   )
 }

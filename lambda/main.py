@@ -9,6 +9,7 @@ logging.basicConfig(level=logging.INFO)
 config = config.Config()
 session = boto3.Session()
 
+
 def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
@@ -19,9 +20,9 @@ def lambda_handler(event, context):
     else:
         logging.warning("ACM certificate import not enabled")
 
-    if config.ssm_ssl_update_command is not None:
+    if config.ssm_ssl_adhoc_command is not None:
         logging.info('Issuing SSM SSL certificate update commands')
-        ssm_ssl_update_command()
+        ssm_ssl_adhoc_command()
     else:
         logging.warning("SSM SSL certificate update commands not enabled")
 
@@ -48,11 +49,12 @@ def load_secret():
     logging.info(f"Parsing secret: {config.secret_arn}")
     secret = json.loads(secret_value['SecretString'])
 
-    cert        = secret[config.keyname_certificate]
+    cert = secret[config.keyname_certificate]
     private_key = secret[config.keyname_private_key]
-    cert_chain  = secret[config.keyname_certificate_chain]
+    cert_chain = secret[config.keyname_certificate_chain]
 
     return cert, private_key, cert_chain
+
 
 def acm_import():
     client = session.client('acm')
@@ -75,7 +77,8 @@ def acm_import():
     # ACM.Client.exceptions.InvalidParameterException
     # ACM.Client.exceptions.InvalidArnException
 
-def ssm_ssl_update_command():
+
+def ssm_ssl_adhoc_command():
     client = session.client('ssm')
 
     response = client.send_command(
@@ -85,7 +88,7 @@ def ssm_ssl_update_command():
             'Values': config.ssm_target_values
         }],
         Parameters={
-            'commands': [config.ssm_ssl_update_command]
+            'commands': [config.ssm_ssl_adhoc_command]
         },
     )
 
@@ -101,6 +104,22 @@ def ssm_ssl_update_command():
     # SSM.Client.exceptions.MaxDocumentSizeExceeded
     # SSM.Client.exceptions.InvalidRole
     # SSM.Client.exceptions.InvalidNotificationConfig
+
+
+def ssm_ssl_named_document():
+    client = session.client('ssm')
+
+    # Run the SSM Document on the instances that match the specified tag
+
+    ssm_document = boto3.client('ssm')
+    response = ssm_document.send_command(
+        DocumentName=config.ssm_ssl_named_document,
+        DocumentVersion='latest',
+        Targets=[{
+            'Key': config.ssm_target_key,
+            'Values': config.ssm_target_values
+        }],
+    )
 
 
 def ecs_service_update():
@@ -120,5 +139,6 @@ def ecs_service_update():
     # ECS.Client.exceptions.InvalidParameterException
     # ECS.Client.exceptions.ClusterNotFoundException
     # ECS.Client.exceptions.ServiceNotFoundException
+
 
 lambda_handler(None, None)
