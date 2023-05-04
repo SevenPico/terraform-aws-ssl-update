@@ -146,53 +146,53 @@ module "lambda_policy" {
   iam_source_policy_documents   = null
 
   iam_policy_statements = merge(
-    local.ecs_update_enabled ? {
-      SecretRead = {
-        effect = "Allow"
-        actions = [
-          "secretsmanager:GetSecretValue",
-          "secretsmanager:DescribeSecret",
-        ]
-        resources = [var.secret_arn]
-      }
-
-      SecretDecrypt = {
-        effect = "Allow"
-        actions = [
-          "kms:Decrypt",
-          "kms:DescribeKey",
-        ]
-        resources = [var.kms_key_arn]
-      }
-
-      ACMImport = {
-        effect = "Allow"
-        actions = [
-          "acm:ImportCertificate"
-        ]
-        resources = [var.acm_certificate_arn]
-      }
-    } : {},
-
-    local.adhoc_ssm_enabled ? {
-      SSMSendCommand = {
-        effect = "Allow"
-        actions = [
-          "ssm:SendCommand",
-        ]
-        resources = ["*"] # FIXME - can this be limited?
-      }
-    } : {},
-
-    local.ecs_update_enabled ? {
-      ECSUpdateService = {
-        effect = "Allow"
-        actions = [
-          "ecs:UpdateService"
-        ]
-        resources = [var.ecs_service_arns]
-      }
-    } : {},
+#    local.acm_certificate_enabled ? {
+#      SecretRead = {
+#        effect = "Allow"
+#        actions = [
+#          "secretsmanager:GetSecretValue",
+#          "secretsmanager:DescribeSecret",
+#        ]
+#        resources = [var.secret_arn]
+#      }
+#
+#      SecretDecrypt = {
+#        effect = "Allow"
+#        actions = [
+#          "kms:Decrypt",
+#          "kms:DescribeKey",
+#        ]
+#        resources = [var.kms_key_arn]
+#      }
+#
+#      ACMImport = {
+#        effect = "Allow"
+#        actions = [
+#          "acm:ImportCertificate"
+#        ]
+#        resources = [var.acm_certificate_arn]
+#      }
+#    } : {},
+#
+#    local.adhoc_ssm_enabled ? {
+#      SSMSendCommand = {
+#        effect = "Allow"
+#        actions = [
+#          "ssm:SendCommand",
+#        ]
+#        resources = ["*"] # FIXME - can this be limited?
+#      }
+#    } : {},
+#
+#    local.ecs_update_enabled ? {
+#      ECSUpdateService = {
+#        effect = "Allow"
+#        actions = [
+#          "ecs:UpdateService"
+#        ]
+#        resources = [var.ecs_service_arns]
+#      }
+#    } : {},
     local.named_ssm_enabled ? {
       EC2SSLUpdate = {
         effect = "Allow"
@@ -200,7 +200,7 @@ module "lambda_policy" {
           "ssm:DescribeDocument",
           "ssm:ExecuteDocument",
         ]
-        resources = "${local.arn_prefix}:ssm:${local.region}:${local.account_id}:document/${var.ssm_named_document}"
+        resources = ["${local.arn_prefix}:ssm:${local.region}:${local.account_id}:document/${var.ssm_named_document}"]
       }
     } : {},
   )
