@@ -184,15 +184,15 @@ module "lambda_policy" {
 #      }
 #    } : {},
 #
-#    local.ecs_update_enabled ? {
-#      ECSUpdateService = {
-#        effect = "Allow"
-#        actions = [
-#          "ecs:UpdateService"
-#        ]
-#        resources = [var.ecs_service_arns]
-#      }
-#    } : {},
+    local.ecs_update_enabled ? {
+      ECSUpdateService = {
+        effect = "Allow"
+        actions = [
+          "ecs:UpdateService"
+        ]
+        resources = [var.ecs_service_arns]
+      }
+    } : {},
     local.named_ssm_enabled ? {
       EC2SSLUpdate = {
         effect = "Allow"
