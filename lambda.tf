@@ -174,16 +174,16 @@ module "lambda_policy" {
 #      }
 #    } : {},
 #
-#    local.adhoc_ssm_enabled ? {
-#      SSMSendCommand = {
-#        effect = "Allow"
-#        actions = [
-#          "ssm:SendCommand",
-#        ]
-#        resources = ["*"] # FIXME - can this be limited?
-#      }
-#    } : {},
-#
+    local.adhoc_ssm_enabled ? {
+      SSMSendCommand = {
+        effect = "Allow"
+        actions = [
+          "ssm:SendCommand",
+        ]
+        resources = ["*"] # FIXME - can this be limited?
+      }
+    } : {},
+
     local.ecs_update_enabled ? {
       ECSUpdateService = {
         effect = "Allow"
