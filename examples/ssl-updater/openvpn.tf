@@ -76,7 +76,7 @@ module "openvpn" {
   enable_efs                 = false
   enable_nat                 = true
   enable_custom_ssl          = true
-  enable_licensing           = false
+  enable_licensing           = true
   enable_openvpn_backups     = true
   enable_ec2_cloudwatch_logs = true
 
@@ -91,6 +91,7 @@ module "openvpn" {
   ssl_secret_certificate_bundle_keyname      = "CERTIFICATE_CHAIN"
   ssl_secret_certificate_keyname             = "CERTIFICATE"
   ssl_secret_certificate_private_key_keyname = "CERTIFICATE_PRIVATE_KEY"
+  ssl_license_key_keyname                    = "OPENVPN_LICENSE"
 
 
   # EC2

@@ -197,7 +197,7 @@ module "lambda_policy" {
       EC2SSLUpdate = {
         effect = "Allow"
         actions = [
-          "ssm:DescribeDocument",
+          "ssm:SendCommand",
           "ssm:ExecuteDocument",
         ]
         resources = ["${local.arn_prefix}:ssm:${local.region}:${local.account_id}:document/${var.ssm_named_document}"]
