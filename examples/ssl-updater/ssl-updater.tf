@@ -51,5 +51,5 @@ module "ssl-update" {
   ssm_adhoc_command             = ""
   ssm_named_document            = module.openvpn.ssm_document_ssl_policy
   ssm_target_key                = "NAME"
-  ssm_target_values             = [module.openvpn_context.name]
+  ssm_target_values             = [module.openvpn_context.id]
 }
