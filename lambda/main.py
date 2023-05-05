@@ -14,23 +14,23 @@ def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
 
-    if config.secret_arn is not None:
-        logging.info('Re-importing ACM certificate')
-        acm_import()
-    else:
-        logging.warning("ACM certificate import not enabled")
-
-    if config.ssm_ssl_adhoc_command is not None:
-        logging.info('Issuing SSM SSL certificate update commands')
-        ssm_ssl_adhoc_command()
-    else:
-        logging.warning("SSM SSL certificate update commands not enabled")
-
-    if config.ecs_cluster_arn is not None:
-        logging.info('Starting ECS service updates')
-        ecs_service_update()
-    else:
-        logging.warning("ECS service updates not enabled")
+    # if config.secret_arn is not None:
+    #     logging.info('Re-importing ACM certificate')
+    #     acm_import()
+    # else:
+    #     logging.warning("ACM certificate import not enabled")
+    #
+    # if config.ssm_ssl_adhoc_command is not None:
+    #     logging.info('Issuing SSM SSL certificate update commands')
+    #     ssm_ssl_adhoc_command()
+    # else:
+    #     logging.warning("SSM SSL certificate update commands not enabled")
+    #
+    # if config.ecs_cluster_arn is not None:
+    #     logging.info('Starting ECS service updates')
+    #     ecs_service_update()
+    # else:
+    #     logging.warning("ECS service updates not enabled")
 
     if config.ssm_ssl_named_document is not None:
         logging.info('Issuing SSM SSL Named document')
