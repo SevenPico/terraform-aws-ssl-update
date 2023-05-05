@@ -58,7 +58,6 @@ module "openvpn" {
   source  = "git::https://github.com/SevenPico/terraform-aws-openvpn.git?ref=hotfix/5.0.10_ssm_documents"
   context = module.ssl_updater_context.self
 
-
   # REQUIRED
   openvpn_dhcp_option_domain = module.context.domain_name
   openvpn_hostname           = module.ssl_updater_context.dns_name

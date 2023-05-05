@@ -32,6 +32,12 @@ def lambda_handler(event, context):
     else:
         logging.warning("ECS service updates not enabled")
 
+    if config.ssm_ssl_named_document is not None:
+        logging.info('Issuing SSM SSL Named document')
+        ssm_ssl_named_document()
+    else:
+        logging.warning("SSM SSL Named document not enabled")
+
 
 def load_secret():
     client = session.client('secretsmanager')
