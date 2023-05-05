@@ -120,7 +120,7 @@ def ssm_ssl_named_document():
     ssm_document = boto3.client('ssm')
     response = ssm_document.send_command(
         DocumentName=config.ssm_ssl_named_document,
-        DocumentVersion='latest',
+        DocumentVersion='$LATEST',
         Targets=[{
             'Key': config.ssm_target_key,
             'Values': config.ssm_target_values
