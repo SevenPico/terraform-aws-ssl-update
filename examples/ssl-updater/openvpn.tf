@@ -95,7 +95,7 @@ module "openvpn" {
 
 
   # EC2
-  ec2_associate_public_ip_address           = false
+  ec2_associate_public_ip_address           = true
   ec2_ami_id                                = "ami-0574da719dca65348"
   ec2_autoscale_desired_count               = 1
   ec2_autoscale_instance_type               = "t3.micro"
