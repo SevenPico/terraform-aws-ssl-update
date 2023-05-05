@@ -29,7 +29,7 @@ module "cloudtrail" {
 
 module "cloudtrail_log_storage" {
   source  = "registry.terraform.io/SevenPico/s3-log-storage/aws//modules/cloudtrail"
-  version = "2.0.2"
+  version = "2.0.4"
   context = module.cloudtrail_context.self
 
   access_log_bucket_name            = ""
