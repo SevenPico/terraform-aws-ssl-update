@@ -118,22 +118,13 @@ def ssm_ssl_named_document():
     # Run the SSM Document on the instances that match the specified tag
     ssm_document = boto3.client('ssm')
 
-    # Specify the targets to run the SSM Document on
-    target_tag_key = config.ssm_target_key
-    target_tag_value = config.ssm_target_values
-
-    # Build the target list
-    targets = [
-        {
-            'Key': target_tag_key,
-            'Values': [target_tag_value]
-        }
-    ]
-
     response = ssm_document.send_command(
         DocumentName=config.ssm_ssl_named_document,
         DocumentVersion='$LATEST',
-        Targets=targets,
+        Targets=[{
+            'tag:name': ','.join(config.ssm_target_values),
+            'tag-key': config.ssm_target_key,
+        }],
     )
 
 
