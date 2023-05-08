@@ -14,23 +14,23 @@ def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
 
-    # if config.secret_arn is not None:
-    #     logging.info('Re-importing ACM certificate')
-    #     acm_import()
-    # else:
-    #     logging.warning("ACM certificate import not enabled")
-    #
-    # if config.ssm_ssl_adhoc_command is not None:
-    #     logging.info('Issuing SSM SSL certificate update commands')
-    #     ssm_ssl_adhoc_command()
-    # else:
-    #     logging.warning("SSM SSL certificate update commands not enabled")
-    #
-    # if config.ecs_cluster_arn is not None:
-    #     logging.info('Starting ECS service updates')
-    #     ecs_service_update()
-    # else:
-    #     logging.warning("ECS service updates not enabled")
+    if config.secret_arn is not None:
+        logging.info('Re-importing ACM certificate')
+        acm_import()
+    else:
+        logging.warning("ACM certificate import not enabled")
+
+    if config.ssm_ssl_adhoc_command is not None:
+        logging.info('Issuing SSM SSL certificate update commands')
+        ssm_ssl_adhoc_command()
+    else:
+        logging.warning("SSM SSL certificate update commands not enabled")
+
+    if config.ecs_cluster_arn is not None:
+        logging.info('Starting ECS service updates')
+        ecs_service_update()
+    else:
+        logging.warning("ECS service updates not enabled")
 
     if config.ssm_ssl_named_document is not None:
         logging.info('Issuing SSM SSL Named document')
@@ -117,13 +117,23 @@ def ssm_ssl_named_document():
 
     # Run the SSM Document on the instances that match the specified tag
     ssm_document = boto3.client('ssm')
+
+    # Specify the targets to run the SSM Document on
+    target_tag_key = config.ssm_target_key
+    target_tag_value = config.ssm_target_values
+
+    # Build the target list
+    targets = [
+        {
+            'Key': target_tag_key,
+            'Values': [target_tag_value]
+        }
+    ]
+
     response = ssm_document.send_command(
         DocumentName=config.ssm_ssl_named_document,
         DocumentVersion='$LATEST',
-        Targets=[{
-            'tag:name': config.ssm_target_values,
-            'tag-key': config.ssm_target_key,
-        }],
+        Targets=targets,
     )
 
 
