@@ -94,6 +94,7 @@ module "openvpn" {
   ssl_license_key_keyname                    = "OPENVPN_LICENSE"
 
 
+
   # EC2
   ec2_associate_public_ip_address           = true
   ec2_ami_id                                = "ami-0574da719dca65348"

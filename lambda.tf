@@ -198,9 +198,9 @@ module "lambda_policy" {
         effect = "Allow"
         actions = [
           "ssm:SendCommand",
-          "ssm:ExecuteDocument",
+          "ssm:GetDocument",
         ]
-        resources = ["${local.arn_prefix}:ssm:${local.region}:${local.account_id}:document/${var.ssm_named_document}"]
+        resources = ["*"]
       }
     } : {},
   )

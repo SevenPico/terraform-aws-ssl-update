@@ -18,25 +18,25 @@ def lambda_handler(event, context):
     #     logging.info('Re-importing ACM certificate')
     #     acm_import()
     # else:
-    #     logging.warning("ACM certificate import not enabled")
+    #     logging.info("ACM certificate import not enabled")
 
     if config.ssm_ssl_adhoc_command is not None:
         logging.info('Issuing SSM SSL certificate update commands')
         ssm_ssl_adhoc_command()
     else:
-        logging.warning("SSM SSL certificate update commands not enabled")
+        logging.info("SSM SSL certificate update commands not enabled")
 
     if config.ecs_cluster_arn is not None:
         logging.info('Starting ECS service updates')
         ecs_service_update()
     else:
-        logging.warning("ECS service updates not enabled")
+        logging.info("ECS service updates not enabled")
 
     if config.ssm_ssl_named_document is not None:
         logging.info('Issuing SSM SSL Named document')
         ssm_ssl_named_document()
     else:
-        logging.warning("SSM SSL Named document not enabled")
+        logging.info("SSM SSL Named document not enabled")
 
 
 def load_secret():
@@ -118,13 +118,27 @@ def ssm_ssl_named_document():
     # Run the SSM Document on the instances that match the specified tag
     ssm_document = boto3.client('ssm')
 
+    # Specify the SSM Document to run
+    document_name = config.ssm_ssl_named_document
+
+    # Specify the targets to run the SSM Document on
+    target_tag_key = config.ssm_target_key
+    target_tag_value = config.ssm_target_values
+
+    # Build the target list
+    targets = [
+        {
+            'Key': target_tag_key,
+            'Values': target_tag_value
+        }
+    ]
+
+    logging.info(f"Target_key : {targets}")
+
     response = ssm_document.send_command(
-        DocumentName=config.ssm_ssl_named_document,
+        DocumentName=document_name,
         DocumentVersion='$LATEST',
-        Targets=[{
-            'Key': 'tag:' + config.ssm_target_key,
-            'Values': [config.ssm_target_values],
-        }],
+        Targets=targets
     )
 
 

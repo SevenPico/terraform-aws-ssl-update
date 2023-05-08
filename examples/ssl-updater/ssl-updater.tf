@@ -39,7 +39,7 @@ module "ssl-update" {
   context = module.ssl_updater_context.self
 
   sns_topic_arn                 = module.ssl_certificate.sns_topic_arn
-  acm_certificate_arn           = module.ssl_certificate.acm_certificate_arn
+  acm_certificate_arn           = ""
   cloudwatch_log_retention_days = 30
   ecs_cluster_arn               = ""
   ecs_service_arns              = []
@@ -49,7 +49,7 @@ module "ssl-update" {
   kms_key_arn                   = module.ssl_certificate.kms_key_arn
   secret_arn                    = module.ssl_certificate.secret_arn
   ssm_adhoc_command             = ""
-  ssm_named_document            = module.openvpn.ssm_document_ssl_policy
-  ssm_target_key                = "Name"
+  ssm_named_document            = module.openvpn.s
+  ssm_target_key                = "tag:Name"
   ssm_target_values             = [module.openvpn_context.id]
 }
