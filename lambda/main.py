@@ -122,8 +122,8 @@ def ssm_ssl_named_document():
         DocumentName=config.ssm_ssl_named_document,
         DocumentVersion='$LATEST',
         Targets=[{
-            'tag:name': ','.join(config.ssm_target_values),
-            'tag-key': config.ssm_target_key,
+            'Key': 'tag:' + config.ssm_target_key,
+            'Values': [config.ssm_target_values],
         }],
     )
 
