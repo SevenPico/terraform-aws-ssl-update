@@ -14,11 +14,11 @@ def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
 
-    if config.secret_arn is not None:
-        logging.info('Re-importing ACM certificate')
-        acm_import()
-    else:
-        logging.warning("ACM certificate import not enabled")
+    # if config.secret_arn is not None:
+    #     logging.info('Re-importing ACM certificate')
+    #     acm_import()
+    # else:
+    #     logging.warning("ACM certificate import not enabled")
 
     if config.ssm_ssl_adhoc_command is not None:
         logging.info('Issuing SSM SSL certificate update commands')
