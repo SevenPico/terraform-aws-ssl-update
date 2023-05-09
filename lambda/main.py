@@ -14,11 +14,14 @@ def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
 
-    # if config.secret_arn is not None:
-    #     logging.info('Re-importing ACM certificate')
-    #     acm_import()
-    # else:
-    #     logging.info("ACM certificate import not enabled")
+    try:
+        if config.secret_arn is not None:
+            logging.info('Re-importing ACM certificate')
+            acm_import()
+        else:
+            logging.info("ACM certificate import not enabled")
+    except:
+        logging.error("Error Importing ACM Certificate")
 
     if config.ssm_ssl_adhoc_command is not None:
         logging.info('Issuing SSM SSL certificate update commands')
@@ -133,13 +136,16 @@ def ssm_ssl_named_document():
         }
     ]
 
-    logging.info(f"Target_key : {targets}")
-
+    logging.info(f"Target_key : {target_tag_key} ssm_document : {document_name} Target_value : {target_tag_value}")
     response = ssm_document.send_command(
         DocumentName=document_name,
         DocumentVersion='$LATEST',
         Targets=targets
     )
+    # Get the command ID
+    command_id = response['Command']['CommandId']
+
+    print(f"SSM Document {document_name} sent to targets with command ID {command_id}")
 
 
 def ecs_service_update():

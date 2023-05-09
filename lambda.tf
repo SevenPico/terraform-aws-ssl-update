@@ -63,7 +63,7 @@ module "lambda" {
   sns_subscriptions                   = {}
   source_code_hash                    = try(data.archive_file.lambda[0].output_base64sha256, "")
   ssm_parameter_names                 = null
-  timeout                             = 3
+  timeout                             = 10
   tracing_config_mode                 = null
   vpc_config                          = null
 

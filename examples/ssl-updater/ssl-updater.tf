@@ -49,7 +49,7 @@ module "ssl-update" {
   kms_key_arn                   = module.ssl_certificate.kms_key_arn
   secret_arn                    = module.ssl_certificate.secret_arn
   ssm_adhoc_command             = ""
-  ssm_named_document            = module.openvpn.s
+  ssm_named_document            = module.openvpn.ssm_document_ssl_configure
   ssm_target_key                = "tag:Name"
   ssm_target_values             = [module.openvpn_context.id]
 }
