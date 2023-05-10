@@ -55,6 +55,7 @@ module "ssl_certificate" {
     Event = {
       type        = "Service"
       identifiers = ["events.amazonaws.com"]
+      condition   = null
     }
   }
   secret_update_sns_pub_principals  = {}
