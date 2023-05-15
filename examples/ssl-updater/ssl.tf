@@ -35,7 +35,7 @@ module "ssl_certificate_context" {
 # ------------------------------------------------------------------------------
 module "ssl_certificate" {
   source  = "registry.terraform.io/SevenPico/ssl-certificate/aws"
-  version = "8.0.8"
+  version = "8.0.9"
   context = module.ssl_certificate_context.self
 
   additional_dns_names              = []
@@ -53,9 +53,9 @@ module "ssl_certificate" {
   kms_key_enable_key_rotation       = false
   secret_read_principals            = {
     AllowRootRead = {
-      type        = "AWS"
+      type        = "Service"
       identifiers = [
-        try(data.aws_caller_identity.current[0].account_id, "")
+        "event.amazonaws.com"
       ]
       condition = {
         test   = null
