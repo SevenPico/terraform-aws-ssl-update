@@ -51,7 +51,18 @@ module "ssl_certificate" {
   keyname_private_key               = "CERTIFICATE_PRIVATE_KEY"
   kms_key_deletion_window_in_days   = 10
   kms_key_enable_key_rotation       = false
-  secret_read_principals            = {}
+  secret_read_principals            = {
+    AllowRootRead = {
+      type        = "Service"
+      identifiers = ["event.amazonaws.com"]
+      condition = {
+        test   = null
+        values = [
+        ]
+        variable = null
+      }
+    }
+  }
   secret_update_sns_pub_principals  = {}
   secret_update_sns_sub_principals  = {}
   zone_id                           = null

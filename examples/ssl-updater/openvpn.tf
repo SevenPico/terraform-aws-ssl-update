@@ -55,7 +55,8 @@ data "aws_iam_policy_document" "openvpn_ec2_policy_doc" {
 # OpenVPN
 #------------------------------------------------------------------------------
 module "openvpn" {
-  source  = "git::https://github.com/SevenPico/terraform-aws-openvpn.git?ref=hotfix/5.0.10_ssm_documents"
+  source  = "registry.terraform.io/SevenPico/openvpn/aws"
+  version = "5.0.10"
   context = module.ssl_updater_context.self
 
   # REQUIRED
@@ -138,14 +139,14 @@ module "openvpn" {
   openvpn_client_static_network           = "172.27.64.0"
   openvpn_client_static_network_mask      = "20"
   openvpn_daemon_ingress_blocks           = ["0.0.0.0/0"]
-  openvpn_daemon_tcp_port                 = 443
+  openvpn_daemon_tcp_port                 = null
   openvpn_daemon_udp_port                 = 1194
   openvpn_secret_admin_password_key       = "ADMIN_PASSWORD"
   openvpn_secret_arn                      = ""
   openvpn_secret_enable_kms_key_rotation  = false
   openvpn_secret_kms_key_arn              = null
   openvpn_time_zone                       = "America/Chicago"
-  openvpn_ui_https_port                   = 943
+  openvpn_ui_https_port                   = 443
   openvpn_ui_ingress_blocks               = ["0.0.0.0/0"]
   openvpn_web_server_name                 = "OpenVPN Server"
   openvpn_tls_version_min                 = "1.2"
