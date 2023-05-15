@@ -55,7 +55,7 @@ module "ssl_certificate" {
     AllowRootRead = {
       type        = "Service"
       identifiers = [
-        "event.amazonaws.com"
+        "events.amazonaws.com"
       ]
       condition = {
         test   = null
