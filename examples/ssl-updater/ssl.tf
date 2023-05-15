@@ -53,8 +53,10 @@ module "ssl_certificate" {
   kms_key_enable_key_rotation       = false
   secret_read_principals            = {
     AllowRootRead = {
-      type        = "Service"
-      identifiers = ["event.amazonaws.com"]
+      type        = "AWS"
+      identifiers = [
+        try(data.aws_caller_identity.current[0].account_id, "")
+      ]
       condition = {
         test   = null
         values = [
