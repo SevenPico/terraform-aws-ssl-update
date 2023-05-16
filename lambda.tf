@@ -19,9 +19,9 @@
 ##  This file contains code written by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
 locals {
-  ecs_update_enabled = try(length(var.ecs_cluster_arn), 0) > 0
-  adhoc_ssm_enabled  = try(length(var.ssm_adhoc_command), 0) > 0
-  named_ssm_enabled  = try(length(var.ssm_named_document), 0) > 0
+  ecs_update_enabled      = try(length(var.ecs_cluster_arn), 0) > 0
+  adhoc_ssm_enabled       = try(length(var.ssm_adhoc_command), 0) > 0
+  named_ssm_enabled       = try(length(var.ssm_named_document), 0) > 0
   acm_certificate_enabled = try(length(var.acm_certificate_arn), 0) > 0
 }
 
