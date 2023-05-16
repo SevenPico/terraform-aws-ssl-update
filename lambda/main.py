@@ -165,6 +165,3 @@ def ecs_service_update():
     # ECS.Client.exceptions.InvalidParameterException
     # ECS.Client.exceptions.ClusterNotFoundException
     # ECS.Client.exceptions.ServiceNotFoundException
-
-# FIXME After commenting out lambda_handler(None, None), the ssm_ssl_named_document function does not execute twice..
-# lambda_handler(None, None)

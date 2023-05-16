@@ -34,7 +34,7 @@ module "ssl_updater_context" {
 #------------------------------------------------------------------------------
 # OpenVPN
 #------------------------------------------------------------------------------
-module "ssl-update" {
+module "ssl_update" {
   source  = "../../"
   context = module.ssl_updater_context.self
 
