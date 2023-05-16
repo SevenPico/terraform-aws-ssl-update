@@ -167,4 +167,4 @@ def ecs_service_update():
     # ECS.Client.exceptions.ServiceNotFoundException
 
 
-lambda_handler(None, None)
+# lambda_handler(None, None)
