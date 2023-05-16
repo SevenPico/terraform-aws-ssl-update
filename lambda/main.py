@@ -143,9 +143,9 @@ def ssm_ssl_named_document():
         Targets=targets
     )
     # Get the command ID
-    # command_id = response['Command']['CommandId']
-    #
-    # print(f"SSM Document {document_name} sent to targets with command ID {command_id}")
+    command_id = response['Command']['CommandId']
+
+    print(f"SSM Document {document_name} sent to targets with command ID {command_id}")
 
 
 def ecs_service_update():
