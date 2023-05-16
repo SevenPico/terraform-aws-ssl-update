@@ -18,6 +18,13 @@
 ##  ./lambda.tf
 ##  This file contains code written by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
+locals {
+  ecs_update_enabled      = try(length(var.ecs_cluster_arn), 0) > 0
+  adhoc_ssm_enabled       = try(length(var.ssm_adhoc_command), 0) > 0
+  named_ssm_enabled       = try(length(var.ssm_named_document), 0) > 0
+  acm_certificate_enabled = try(length(var.acm_certificate_arn), 0) > 0
+}
+
 
 # ------------------------------------------------------------------------------
 # SSL Update Lambda
@@ -56,25 +63,30 @@ module "lambda" {
   sns_subscriptions                   = {}
   source_code_hash                    = try(data.archive_file.lambda[0].output_base64sha256, "")
   ssm_parameter_names                 = null
-  timeout                             = 3
+  timeout                             = 10
   tracing_config_mode                 = null
   vpc_config                          = null
 
   lambda_environment = {
     variables = merge(
-      var.acm_enabled ? {
+      try(length(var.acm_certificate_arn), 0) > 0 ? {
         SECRET_ARN : var.secret_arn
         ACM_CERTIFICATE_ARN : var.acm_certificate_arn
         KEYNAME_CERTIFICATE : var.keyname_certificate
         KEYNAME_PRIVATE_KEY : var.keyname_private_key
         KEYNAME_CERTIFICATE_CHAIN : var.keyname_certificate_chain
       } : {},
-      var.ssm_enabled ? {
-        SSM_SSL_UPDATE_COMMAND : var.ssm_ssl_update_command
+      try(length(var.ssm_adhoc_command), 0) > 0 ? {
+        SSM_SSL_UPDATE_COMMAND : var.ssm_adhoc_command
         SSM_TARGET_KEY : var.ssm_target_key
         SSM_TARGET_VALUES : join(",", var.ssm_target_values)
       } : {},
-      var.ecs_enabled ? {
+      try(length(var.ssm_named_document), 0) > 0 ? {
+        SSM_SSL_NAMED_DOCUMENT : var.ssm_named_document
+        SSM_TARGET_KEY : var.ssm_target_key
+        SSM_TARGET_VALUES : join(",", var.ssm_target_values)
+      } : {},
+      try(length(var.ecs_cluster_arn), 0) > 0 ? {
         ECS_CLUSTER_ARN : var.ecs_cluster_arn
         ECS_SERVICE_ARNS : join(",", var.ecs_service_arns)
       } : {},
@@ -94,14 +106,14 @@ data "archive_file" "lambda" {
 # Lambda SNS Subscription
 # ------------------------------------------------------------------------------
 resource "aws_sns_topic_subscription" "lambda" {
-  count       = module.context.enabled ? 1 : 0
+  count     = module.context.enabled ? 1 : 0
   endpoint  = module.lambda.arn
   protocol  = "lambda"
   topic_arn = var.sns_topic_arn
 }
 
 resource "aws_lambda_permission" "sns" {
-  count       = module.context.enabled ? 1 : 0
+  count         = module.context.enabled ? 1 : 0
   action        = "lambda:InvokeFunction"
   function_name = module.lambda.function_name
   principal     = "sns.amazonaws.com"
@@ -134,7 +146,7 @@ module "lambda_policy" {
   iam_source_policy_documents   = null
 
   iam_policy_statements = merge(
-    var.acm_enabled ? {
+    local.acm_certificate_enabled ? {
       SecretRead = {
         effect = "Allow"
         actions = [
@@ -162,7 +174,7 @@ module "lambda_policy" {
       }
     } : {},
 
-    var.ssm_enabled ? {
+    local.adhoc_ssm_enabled ? {
       SSMSendCommand = {
         effect = "Allow"
         actions = [
@@ -172,14 +184,24 @@ module "lambda_policy" {
       }
     } : {},
 
-    var.ecs_enabled ? {
+    local.ecs_update_enabled ? {
       ECSUpdateService = {
         effect = "Allow"
         actions = [
           "ecs:UpdateService"
         ]
-        resources = var.ecs_service_arns
+        resources = [var.ecs_service_arns]
       }
-    } : {}
+    } : {},
+    local.named_ssm_enabled ? {
+      EC2SSLUpdate = {
+        effect = "Allow"
+        actions = [
+          "ssm:SendCommand",
+          "ssm:GetDocument",
+        ]
+        resources = ["*"]
+      }
+    } : {},
   )
 }

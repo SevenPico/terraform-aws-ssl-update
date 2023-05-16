@@ -9,27 +9,37 @@ logging.basicConfig(level=logging.INFO)
 config = config.Config()
 session = boto3.Session()
 
+
 def lambda_handler(event, context):
     logging.info(event)
     logging.info(context)
 
-    if config.secret_arn is not None:
-        logging.info('Re-importing ACM certificate')
-        acm_import()
-    else:
-        logging.warning("ACM certificate import not enabled")
+    try:
+        if config.secret_arn is not None:
+            logging.info('Re-importing ACM certificate')
+            acm_import()
+        else:
+            logging.info("ACM certificate import not enabled")
+    except:
+        logging.error("Error Importing ACM Certificate")
 
-    if config.ssm_ssl_update_command is not None:
+    if config.ssm_ssl_adhoc_command is not None:
         logging.info('Issuing SSM SSL certificate update commands')
-        ssm_ssl_update_command()
+        ssm_ssl_adhoc_command()
     else:
-        logging.warning("SSM SSL certificate update commands not enabled")
+        logging.info("SSM SSL certificate update commands not enabled")
 
     if config.ecs_cluster_arn is not None:
         logging.info('Starting ECS service updates')
         ecs_service_update()
     else:
-        logging.warning("ECS service updates not enabled")
+        logging.info("ECS service updates not enabled")
+
+    if config.ssm_ssl_named_document is not None:
+        logging.info('Issuing SSM SSL Named document')
+        ssm_ssl_named_document()
+    else:
+        logging.info("SSM SSL Named document not enabled")
 
 
 def load_secret():
@@ -48,11 +58,12 @@ def load_secret():
     logging.info(f"Parsing secret: {config.secret_arn}")
     secret = json.loads(secret_value['SecretString'])
 
-    cert        = secret[config.keyname_certificate]
+    cert = secret[config.keyname_certificate]
     private_key = secret[config.keyname_private_key]
-    cert_chain  = secret[config.keyname_certificate_chain]
+    cert_chain = secret[config.keyname_certificate_chain]
 
     return cert, private_key, cert_chain
+
 
 def acm_import():
     client = session.client('acm')
@@ -75,7 +86,8 @@ def acm_import():
     # ACM.Client.exceptions.InvalidParameterException
     # ACM.Client.exceptions.InvalidArnException
 
-def ssm_ssl_update_command():
+
+def ssm_ssl_adhoc_command():
     client = session.client('ssm')
 
     response = client.send_command(
@@ -85,7 +97,7 @@ def ssm_ssl_update_command():
             'Values': config.ssm_target_values
         }],
         Parameters={
-            'commands': [config.ssm_ssl_update_command]
+            'commands': [config.ssm_ssl_adhoc_command]
         },
     )
 
@@ -101,6 +113,39 @@ def ssm_ssl_update_command():
     # SSM.Client.exceptions.MaxDocumentSizeExceeded
     # SSM.Client.exceptions.InvalidRole
     # SSM.Client.exceptions.InvalidNotificationConfig
+
+
+def ssm_ssl_named_document():
+    client = session.client('ssm')
+
+    # Run the SSM Document on the instances that match the specified tag
+    ssm_document = boto3.client('ssm')
+
+    # Specify the SSM Document to run
+    document_name = config.ssm_ssl_named_document
+
+    # Specify the targets to run the SSM Document on
+    target_tag_key = config.ssm_target_key
+    target_tag_value = config.ssm_target_values
+
+    # Build the target list
+    targets = [
+        {
+            'Key': target_tag_key,
+            'Values': target_tag_value
+        }
+    ]
+
+    logging.info(f"Target_key : {target_tag_key} ssm_document : {document_name} Target_value : {target_tag_value}")
+    response = ssm_document.send_command(
+        DocumentName=document_name,
+        DocumentVersion='$LATEST',
+        Targets=targets
+    )
+    # Get the command ID
+    command_id = response['Command']['CommandId']
+
+    print(f"SSM Document {document_name} sent to targets with command ID {command_id}")
 
 
 def ecs_service_update():
@@ -120,5 +165,3 @@ def ecs_service_update():
     # ECS.Client.exceptions.InvalidParameterException
     # ECS.Client.exceptions.ClusterNotFoundException
     # ECS.Client.exceptions.ServiceNotFoundException
-
-lambda_handler(None, None)
