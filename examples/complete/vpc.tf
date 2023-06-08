@@ -28,6 +28,7 @@ module "vpc_context" {
   context = module.context.self
   name    = "vpc"
 }
+
 module "vpc_subnets_context" {
   source  = "registry.terraform.io/SevenPico/context/null"
   version = "2.0.0"
@@ -35,60 +36,8 @@ module "vpc_subnets_context" {
   attributes = [
   "subnet"]
 }
-//module "vpc_endpoint_sg_context" {
-//  source  = "registry.terraform.io/SevenPico/context/null"
-//  version = "2.0.0"
-//  context = module.vpc_context.self
-//  enabled = module.vpc_context.enabled && var.create_private_links
-//}
-locals {
-  gateway_vpc_endpoints = [
-    "s3",
-    "dynamodb",
-  ]
-  interface_vpc_endpoints = {
-    #    "ec2" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "ec2messages" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "ecs" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "logs" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "s3" : {
-    #      private_dns_enabled = false
-    #    }
-    #    "secretsmanager" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "ecr.dkr" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "ecr.api" : {
-    #      private_dns_enabled = true
-    #    }
-    "ssm" : {
-      private_dns_enabled = true
-    }
-    "ssmmessages" : {
-      private_dns_enabled = true
-    }
-    #    "sns" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "elasticfilesystem" : {
-    #      private_dns_enabled = true
-    #    }
-    #    "codepipeline" : {
-    #      private_dns_enabled = true
-    #      policy              = null
-    #    }
-  }
-}
+
+
 #------------------------------------------------------------------------------
 # VPC
 #------------------------------------------------------------------------------
@@ -96,6 +45,7 @@ module "vpc" {
   source  = "registry.terraform.io/SevenPico/vpc/aws"
   version = "3.0.0"
   context = module.vpc_context.self
+
   assign_generated_ipv6_cidr_block          = false
   default_network_acl_deny_all              = false
   default_route_table_no_routes             = false
@@ -114,6 +64,8 @@ module "vpc" {
   ipv6_egress_only_internet_gateway_enabled = false
   ipv6_primary_cidr_block_association       = null
 }
+
+
 #------------------------------------------------------------------------------
 # VPC Subnets
 #------------------------------------------------------------------------------
@@ -121,6 +73,7 @@ module "vpc_subnets" {
   source = "git::https://github.com/SevenPico/terraform-aws-dynamic-subnets.git?ref=feature/3.1.0_outpost_support" # "registry.terraform.io/SevenPico/dynamic-subnets/aws"
   #  version = "3.0.0"
   context = module.vpc_subnets_context.self
+
   availability_zone_attribute_style        = "short"
   availability_zone_ids                    = []
   availability_zones                       = var.availability_zones
@@ -183,92 +136,3 @@ module "vpc_subnets" {
   private_subnets_additional_tags          = {}
   nat_instance_enabled                     = false
 }
-//#------------------------------------------------------------------------------
-//# VPC Endpoint Security Groups
-//#------------------------------------------------------------------------------
-//module "vpc_endpoint_sg" {
-//  source     = "registry.terraform.io/cloudposse/security-group/aws"
-//  version    = "0.4.2"
-//  context    = module.vpc_endpoint_sg_context.legacy
-//  attributes = ["endpoint"]
-//
-//  allow_all_egress              = false
-//  create_before_destroy         = false
-//  inline_rules_enabled          = false
-//  revoke_rules_on_delete        = false
-//  rule_matrix                   = []
-//  rules_map                     = {}
-//  security_group_create_timeout = "5m"
-//  security_group_delete_timeout = "5m"
-//  security_group_description    = "Allow access to Interface VPC Private Link Endpoint."
-//  security_group_name           = []
-//  target_security_group_id      = []
-//
-//  vpc_id = module.vpc.vpc_id
-//  rules = [
-//    {
-//      description = "Security Group Rule for Interface VPC Private Link Endpoint."
-//      type        = "ingress"
-//      protocol    = "TCP"
-//      cidr_blocks = [
-//      module.vpc.vpc_cidr_block]
-//      from_port = 443
-//      to_port   = 443
-//      self      = null
-//  }]
-//}
-//
-//
-//#------------------------------------------------------------------------------
-//# VPC Endpoints
-//#------------------------------------------------------------------------------
-//module "vpc_endpoints" {
-//  source  = "registry.terraform.io/cloudposse/vpc/aws//modules/vpc-endpoints"
-//  version = "0.28.1"
-//  context = module.vpc_endpoint_sg_context.legacy
-//
-//  vpc_id = module.vpc.vpc_id
-//
-//  gateway_vpc_endpoints = {
-//    for key in local.gateway_vpc_endpoints :
-//    key => {
-//      name = key
-//      policy = jsonencode({
-//        Version = "2012-10-17"
-//        Statement = [
-//          {
-//            Effect    = "Allow"
-//            Action    = "*"
-//            Principal = "*"
-//            Resource  = "*"
-//        }]
-//      })
-//    }
-//  }
-//
-//  interface_vpc_endpoints = {
-//    for key, value in local.interface_vpc_endpoints :
-//    key => {
-//      name       = key
-//      subnet_ids = module.vpc_subnets.private_subnet_ids
-//      security_group_ids = [
-//      module.vpc_endpoint_sg.id]
-//      private_dns_enabled = value["private_dns_enabled"]
-//      policy = lookup(value, "policy", jsonencode({
-//        Version = "2012-10-17"
-//        Statement = [
-//          {
-//            Effect    = "Allow"
-//            Action    = "*"
-//            Principal = "*"
-//            Resource  = "*"
-//        }]
-//      }))
-//    }
-//  }
-//}
-//resource "aws_vpc_endpoint_route_table_association" "vpc_gateway_endpoint" {
-//  count           = module.vpc_context.enabled && length(module.vpc_endpoints.gateway_vpc_endpoints) > 0 ? length(var.availability_zones) : 0
-//  route_table_id  = module.vpc_subnets.private_route_table_ids[count.index]
-//  vpc_endpoint_id = module.vpc_endpoints.gateway_vpc_endpoints[0].id
-//}
