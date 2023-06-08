@@ -6,13 +6,10 @@ locals {
   root_domain = "modules.thebrim.io"
 
   namespace   = "brim"
-  project     = "ssl-update" //replace(basename(get_repo_root()), "teraform-", "")
-  environment = ""
+  project     = "" //replace(basename(get_repo_root()), "teraform-", "")
+  environment = "ssl-update"
   stage       = basename(get_terragrunt_dir()) //
   domain_name = "${local.stage}.${local.project}.${local.root_domain}"
-
-  #name       = null
-  #attributes = []
 
   tags = { Source = "Managed by Terraform" }
   regex_replace_chars = "/[^-a-zA-Z0-9]/"
@@ -23,6 +20,7 @@ locals {
   label_key_case      = "title"
   label_value_case    = "lower"
   #label_order         =  ["namespace", "project", "environment", "stage", "name", "attributes"]
+  label_order         = ["namespace", "environment", "stage", "name", "attributes"]
   dns_name_format     = "$${name}.$${domain_name}"
 }
 
@@ -46,11 +44,8 @@ inputs = {
   id_hash_length      = local.id_hash_length
   label_key_case      = local.label_key_case
   label_value_case    = local.label_value_case
-  #label_order         = local.label_order
+  label_order         = local.label_order
   dns_name_format     = local.dns_name_format
-
-  #name       = local.name
-  #attributes = local.attributes
 
   # Module / Example Specific
   vpc_cidr_block     = "10.10.0.0/16"
