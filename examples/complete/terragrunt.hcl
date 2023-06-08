@@ -51,6 +51,14 @@ inputs = {
 
   name       = local.name
   attributes = local.attributes
+  id_context = {
+    namespace   = local.namespace
+    tenant      = local.tenant
+    environment = local.environment
+    stage       = local.stage
+    name        = local.name
+    attributes  = join(local.delimiter, local.attributes)
+  }
 
   # Module / Example Specific
   vpc_cidr_block     = "10.10.0.0/16"
