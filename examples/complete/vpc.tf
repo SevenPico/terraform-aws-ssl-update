@@ -38,28 +38,28 @@ module "vpc_subnets_context" {
 # VPC Subnets
 #------------------------------------------------------------------------------
 module "vpc" {
-  source  = "cloudposse/vpc/aws"
-  version = "0.28.1"
+  source  = "registry.terraform.io/cloudposse/vpc/aws"
+  version = "2.0.0"
   context = module.vpc_context.legacy
 
-  cidr_block                                      = var.vpc_cidr_block
-  additional_cidr_blocks                          = []
-  assign_generated_ipv6_cidr_block                = false
-  classiclink_dns_support_enabled                 = false
-  classiclink_enabled                             = false
+  #cidr_block                                      = var.vpc_cidr_block
+  #additional_cidr_blocks                          = []
+  assign_generated_ipv6_cidr_block                = true
   default_security_group_deny_all                 = true
   dns_hostnames_enabled                           = true
   dns_support_enabled                             = true
-  enable_classiclink                              = false
-  enable_default_security_group_with_custom_rules = false
-  enable_classiclink_dns_support                  = false
-  enable_dns_hostnames                            = true
-  enable_dns_support                              = true
-  enable_internet_gateway                         = true
+  #enable_default_security_group_with_custom_rules = false
+  #enable_dns_hostnames                            = true
+  #enable_dns_support                              = true
+  #enable_internet_gateway                         = true
   instance_tenancy                                = "default"
   internet_gateway_enabled                        = true
   ipv6_egress_only_internet_gateway_enabled       = false
-  ipv6_enabled                                    = true
+  #ipv6_enabled                                    = true
+
+  default_network_acl_deny_all                    = false
+  default_route_table_no_routes                   = false
+  ipv4_primary_cidr_block = var.vpc_cidr_block
 }
 
 
@@ -67,8 +67,8 @@ module "vpc" {
 # VPC Subnets
 #------------------------------------------------------------------------------
 module "vpc_subnets" {
-  source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.39.8"
+  source  = "registry.terraform.io/cloudposse/dynamic-subnets/aws"
+  version = "1.0.0"
   context = module.vpc_subnets_context.legacy
 
   availability_zones                   = var.availability_zones
@@ -78,7 +78,7 @@ module "vpc_subnets" {
   availability_zone_attribute_style    = "short"
   aws_route_create_timeout             = "2m"
   aws_route_delete_timeout             = "2m"
-  map_public_ip_on_launch              = true
+  map_public_ip_on_launch              = false
   max_subnet_count                     = 0 // 0 means create 1 for each AZ
   metadata_http_endpoint_enabled       = false
   metadata_http_put_response_hop_limit = 1
@@ -95,4 +95,6 @@ module "vpc_subnets" {
   subnet_type_tag_key                  = "Type"
   subnet_type_tag_value_format         = "%s"
   vpc_default_route_table_id           = ""
+
+  nat_instance_cpu_credits_override = ""
 }
