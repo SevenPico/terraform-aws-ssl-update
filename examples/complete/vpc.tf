@@ -45,7 +45,7 @@ module "vpc" {
   assign_generated_ipv6_cidr_block          = false
   default_network_acl_deny_all              = false
   default_route_table_no_routes             = false
-  default_security_group_deny_all           = false
+  default_security_group_deny_all           = true
   dns_hostnames_enabled                     = true
   dns_support_enabled                       = true
   instance_tenancy                          = "default"
