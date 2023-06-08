@@ -65,12 +65,6 @@ module "vpc" {
   ipv6_primary_cidr_block_association       = null
 }
 
-resource "aws_default_security_group" "default" {
-  count  = module.vpc_context.enabled ? 1 : 0
-  vpc_id = module.vpc.vpc_id
-  tags   = module.vpc_context.tags
-}
-
 
 #------------------------------------------------------------------------------
 # VPC Subnets
