@@ -6,7 +6,7 @@ locals {
   root_domain = "modules.thebrim.io"
 
   namespace   = "brim"
-  project     = "ssl-update" //replace(basename(get_repo_root()), "teraform-", "")
+  project     = "" //replace(basename(get_repo_root()), "teraform-", "")
   environment = "ssl-update"
   stage       = basename(get_terragrunt_dir()) //
   domain_name = "${local.stage}.${local.project}.${local.root_domain}"
