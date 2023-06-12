@@ -70,7 +70,7 @@ module "vpc" {
 # VPC Subnets
 #------------------------------------------------------------------------------
 module "vpc_subnets" {
-  source = "registry.terraform.io/SevenPico/dynamic-subnets/aws"
+  source  = "registry.terraform.io/SevenPico/dynamic-subnets/aws"
   version = "3.0.1"
   context = module.vpc_subnets_context.self
 
