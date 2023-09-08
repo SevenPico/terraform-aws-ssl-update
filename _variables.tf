@@ -22,7 +22,7 @@
 # TODO - descriptions
 
 variable "sns_topic_arn" {
-  type = string
+  type        = string
   description = "SNS topic to trigger Lambda Function"
 }
 
