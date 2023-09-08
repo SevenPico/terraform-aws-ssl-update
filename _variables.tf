@@ -23,7 +23,7 @@
 
 variable "sns_topic_arn" {
   type = string
-  default = ""
+  default = null
 }
 
 variable "cloudwatch_log_retention_days" {
