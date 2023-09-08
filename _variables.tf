@@ -23,7 +23,6 @@
 
 variable "sns_topic_arn" {
   type = string
-  default = ""
   description = "SNS topic to trigger Lambda Function"
 }
 
