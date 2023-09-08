@@ -23,7 +23,8 @@
 
 variable "sns_topic_arn" {
   type = string
-  default = null
+  default = ""
+  description = "SNS topic to trigger Lambda Function"
 }
 
 variable "cloudwatch_log_retention_days" {

@@ -106,14 +106,14 @@ data "archive_file" "lambda" {
 # Lambda SNS Subscription
 # ------------------------------------------------------------------------------
 resource "aws_sns_topic_subscription" "lambda" {
-  count     = module.context.enabled && var.sns_topic_arn != null ? 1 : 0
+  count     = module.context.enabled && length(var.sns_topic_arn) > 0 ? 1 : 0
   endpoint  = module.lambda.arn
   protocol  = "lambda"
   topic_arn = var.sns_topic_arn
 }
 
 resource "aws_lambda_permission" "sns" {
-  count         = module.context.enabled && var.sns_topic_arn != null ? 1 : 0
+  count         = module.context.enabled && length(var.sns_topic_arn) > 0 ? 1 : 0
   action        = "lambda:InvokeFunction"
   function_name = module.lambda.function_name
   principal     = "sns.amazonaws.com"
