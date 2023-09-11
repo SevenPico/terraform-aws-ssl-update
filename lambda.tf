@@ -23,6 +23,7 @@ locals {
   adhoc_ssm_enabled       = try(length(var.ssm_adhoc_command), 0) > 0
   named_ssm_enabled       = try(length(var.ssm_named_document), 0) > 0
   acm_certificate_enabled = try(length(var.acm_certificate_arn), 0) > 0
+  acm_certificate_replicas_enabled = try(length(var.acm_certificate_arn_replicas), 0) > 0
 }
 
 
@@ -166,14 +167,22 @@ module "lambda_policy" {
           "kms:DescribeKey",
         ]
         resources = [var.kms_key_arn]
-      }
-
-      ACMImport = { #note acm_certificate_arn_replicas
+      },
+    ACMImport = {
         effect = "Allow"
         actions = [
           "acm:ImportCertificate"
         ]
-        resources = concat([var.acm_certificate_arn], length(var.acm_certificate_arn_replicas) > 0 ? values(var.acm_certificate_arn_replicas) : [])
+        resources = values(var.acm_certificate_arn_replicas)
+      }
+    }: {},
+    local.acm_certificate_replicas_enabled ? {
+      ACMReplicaImport = {
+        effect = "AllowACM"
+        actions = [
+          "acm:ImportCertificate"
+        ]
+        resources = values(var.acm_certificate_arn_replicas)
       }
     } : {},
 
