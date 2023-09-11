@@ -76,6 +76,9 @@ module "lambda" {
         KEYNAME_PRIVATE_KEY : var.keyname_private_key
         KEYNAME_CERTIFICATE_CHAIN : var.keyname_certificate_chain
       } : {},
+      try(length(var.acm_certificate_arn_replicas), 0) > 0 ? {
+        ACM_CERTIFICATE_ARN_REPLICAS : var.acm_certificate_arn_replicas
+      } : {},
       try(length(var.ssm_adhoc_command), 0) > 0 ? {
         SSM_SSL_UPDATE_COMMAND : var.ssm_adhoc_command
         SSM_TARGET_KEY : var.ssm_target_key
@@ -165,12 +168,12 @@ module "lambda_policy" {
         resources = [var.kms_key_arn]
       }
 
-      ACMImport = {
+      ACMImport = { #note acm_certificate_arn_replicas
         effect = "Allow"
         actions = [
           "acm:ImportCertificate"
         ]
-        resources = [var.acm_certificate_arn]
+        resources = concat([var.acm_certificate_arn], length(var.acm_certificate_arn_replicas) > 0 ? values(var.acm_certificate_arn_replicas) : [])
       }
     } : {},
 

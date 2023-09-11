@@ -51,6 +51,12 @@ variable "acm_certificate_arn" {
   description = "Required if update_acm is true."
 }
 
+variable "acm_certificate_arn_replicas" {
+  type = map(string)
+  default = {}
+  description = "When creating multi region certificates use this to pass certificates in the other regions not associated with current provider."
+}
+
 variable "keyname_certificate" {
   type        = string
   default     = ""
