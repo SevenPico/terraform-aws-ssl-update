@@ -176,7 +176,7 @@ module "lambda_policy" {
         actions = [
           "acm:ImportCertificate"
         ]
-        resources = values(var.acm_certificate_arn)
+        resources = [var.acm_certificate_arn]
       }
     }: {},
     local.acm_certificate_replicas_enabled ? {
