@@ -77,7 +77,7 @@ module "lambda" {
         KEYNAME_CERTIFICATE_CHAIN : var.keyname_certificate_chain
       } : {},
       try(length(var.acm_certificate_arn_replicas), 0) > 0 ? {
-        ACM_CERTIFICATE_ARN_REPLICAS : var.acm_certificate_arn_replicas
+        ACM_CERTIFICATE_ARN_REPLICAS : jsonencode(var.acm_certificate_arn_replicas)
       } : {},
       try(length(var.ssm_adhoc_command), 0) > 0 ? {
         SSM_SSL_UPDATE_COMMAND : var.ssm_adhoc_command

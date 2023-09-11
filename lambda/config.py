@@ -22,7 +22,7 @@ def get_required_var(name):
 class Config:
     secret_arn = get_optional_var('SECRET_ARN')
     acm_certificate_arn = get_optional_var('ACM_CERTIFICATE_ARN')
-    acm_certificate_arn_replicas = json.loads(get_optional_var('ACM_CERTIFICATE_ARN_REPLICAS', '{}'))
+    acm_certificate_arn_replicas = (get_optional_var('ACM_CERTIFICATE_ARN_REPLICAS', '{}'))
     keyname_certificate = get_optional_var('KEYNAME_CERTIFICATE', 'CERTIFICATE')
     keyname_private_key = get_optional_var('KEYNAME_PRIVATE_KEY', 'CERTIFICATE_PRIVATE_KEY')
     keyname_certificate_chain = get_optional_var('KEYNAME_CERTIFICATE_CHAIN', 'CERTIFICATE_CHAIN')
