@@ -178,7 +178,7 @@ module "lambda_policy" {
     }: {},
     local.acm_certificate_replicas_enabled ? {
       ACMReplicaImport = {
-        effect = "AllowACM"
+        effect = "Allow"
         actions = [
           "acm:ImportCertificate"
         ]
