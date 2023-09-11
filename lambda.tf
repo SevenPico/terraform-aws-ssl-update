@@ -152,6 +152,7 @@ module "lambda_policy" {
   iam_policy_statements = merge(
     local.acm_certificate_enabled ? {
       SecretRead = {
+        sid   = "ReadSecrets"
         effect = "Allow"
         actions = [
           "secretsmanager:GetSecretValue",
@@ -161,6 +162,7 @@ module "lambda_policy" {
       }
 
       SecretDecrypt = {
+        sid   = "kmsDecrypt"
         effect = "Allow"
         actions = [
           "kms:Decrypt",
@@ -169,6 +171,7 @@ module "lambda_policy" {
         resources = [var.kms_key_arn]
       },
     ACMImport = {
+        sid    = "ACMCertificate"
         effect = "Allow"
         actions = [
           "acm:ImportCertificate"
@@ -178,6 +181,7 @@ module "lambda_policy" {
     }: {},
     local.acm_certificate_replicas_enabled ? {
       ACMReplicaImport = {
+        sid    = "ACMReplicaCertificates"
         effect = "Allow"
         actions = [
           "acm:ImportCertificate"
