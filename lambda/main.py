@@ -101,7 +101,6 @@ def acm_import():
             logging.error(f"ACM Error: {error_code} - {error_message}")
 
     acm_certificate_arn_replicas = json.loads(config.acm_certificate_arn_replicas)
-    cert, private_key, cert_chain = load_secret()
     for region, arn in acm_certificate_arn_replicas.items():
         region_session = boto3.Session(region_name=region)
         try:
