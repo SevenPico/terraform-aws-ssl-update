@@ -20,7 +20,7 @@ def lambda_handler(event, context):
             logging.info('Re-importing ACM certificate')
             acm_import()
         else:
-            logging.info("ACM certificate import not enabled")
+            logging.info(f'ACM certificate import')
     except:
         logging.error("Error Importing ACM Certificate")
 
@@ -100,22 +100,22 @@ def acm_import():
         else:
             logging.error(f"ACM Error: {error_code} - {error_message}")
 
-    acm_certificate_arn_replicas = config.acm_certificate_arn_replicas
-
-    if acm_certificate_arn_replicas:
-        for region, arn in acm_certificate_arn_replicas.items():
-            try:
-                logging.info(f'Importing ACM certificate for ARN {arn} in region {region}')
-                region_client = session.client('acm', region_name=region)
-                region_client.import_certificate(
-                    CertificateArn=arn,
-                    Certificate=cert,
-                    PrivateKey=private_key,
-                    CertificateChain=cert_chain,
-                )
-                logging.info(f'Successfully imported ACM certificate for ARN {arn} in region {region}')
-            except Exception as e:
-                logging.error(f"Error importing ACM Certificate for ARN {arn} in region {region}: {str(e)}")
+    acm_certificate_arn_replicas = json.loads(config.acm_certificate_arn_replicas)
+    cert, private_key, cert_chain = load_secret()
+    for region, arn in acm_certificate_arn_replicas.items():
+        region_session = boto3.Session(region_name=region)
+        try:
+            print(f' Importing ACM Certificate Replica {arn} in {region} ')
+            region_client = region_session.client('acm')
+            region_client.import_certificate(
+                CertificateArn=arn,
+                Certificate=cert,
+                PrivateKey=private_key,
+                CertificateChain=cert_chain,
+            )
+            logging.info(f'Successfully imported ACM Replica certificate')
+        except Exception as e:
+            logging.error(f"Error importing ACM Replica certificate: {str(e)}")
 
 
 def ssm_ssl_adhoc_command():
