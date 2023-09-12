@@ -22,7 +22,8 @@
 # TODO - descriptions
 
 variable "sns_topic_arn" {
-  type = string
+  type        = string
+  description = "SNS topic to trigger Lambda Function"
 }
 
 variable "cloudwatch_log_retention_days" {
@@ -48,6 +49,12 @@ variable "acm_certificate_arn" {
   type        = string
   default     = ""
   description = "Required if update_acm is true."
+}
+
+variable "acm_certificate_arn_replicas" {
+  type = map(string)
+  default = {}
+  description = "When creating multi region certificates use this to pass certificates in the other regions not associated with current provider."
 }
 
 variable "keyname_certificate" {
