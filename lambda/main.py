@@ -1,4 +1,5 @@
 import boto3
+import botocore.exceptions
 import json
 import logging
 
@@ -19,7 +20,7 @@ def lambda_handler(event, context):
             logging.info('Re-importing ACM certificate')
             acm_import()
         else:
-            logging.info("ACM certificate import not enabled")
+            logging.info(f'ACM certificate import')
     except:
         logging.error("Error Importing ACM Certificate")
 
@@ -70,21 +71,50 @@ def acm_import():
 
     cert, private_key, cert_chain = load_secret()
 
-    client.import_certificate(
-        CertificateArn=config.acm_certificate_arn,
-        Certificate=cert,
-        PrivateKey=private_key,
-        CertificateChain=cert_chain,
-    )
+    try:
+        client.import_certificate(
+            CertificateArn=config.acm_certificate_arn,
+            Certificate=cert,
+            PrivateKey=private_key,
+            CertificateChain=cert_chain,
+        )
+        logging.info("Successfully imported ACM certificate.")
+    except botocore.exceptions.ClientError as e:
+        error_code = e.response.get("Error", {}).get("Code", "Unknown")
+        error_message = e.response.get("Error", {}).get("Message", "An error occurred.")
 
-    # FIXME - handle
-    # ACM.Client.exceptions.ResourceNotFoundException
-    # ACM.Client.exceptions.LimitExceededException
-    # ACM.Client.exceptions.InvalidTagException
-    # ACM.Client.exceptions.TooManyTagsException
-    # ACM.Client.exceptions.TagPolicyException
-    # ACM.Client.exceptions.InvalidParameterException
-    # ACM.Client.exceptions.InvalidArnException
+        if error_code == "ResourceNotFoundException":
+            logging.error("ACM resource not found.")
+        elif error_code == "LimitExceededException":
+            logging.error("ACM limit exceeded.")
+        elif error_code == "InvalidTagException":
+            logging.error("Invalid ACM tag.")
+        elif error_code == "TooManyTagsException":
+            logging.error("Too many ACM tags.")
+        elif error_code == "TagPolicyException":
+            logging.error("ACM tag policy error.")
+        elif error_code == "InvalidParameterException":
+            logging.error("Invalid ACM parameter.")
+        elif error_code == "InvalidArnException":
+            logging.error("Invalid ACM ARN.")
+        else:
+            logging.error(f"ACM Error: {error_code} - {error_message}")
+
+    acm_certificate_arn_replicas = json.loads(config.acm_certificate_arn_replicas)
+    for region, arn in acm_certificate_arn_replicas.items():
+        region_session = boto3.Session(region_name=region)
+        try:
+            print(f' Importing ACM Certificate Replica {arn} in {region} ')
+            region_client = region_session.client('acm')
+            region_client.import_certificate(
+                CertificateArn=arn,
+                Certificate=cert,
+                PrivateKey=private_key,
+                CertificateChain=cert_chain,
+            )
+            logging.info(f'Successfully imported ACM Replica certificate')
+        except Exception as e:
+            logging.error(f"Error importing ACM Replica certificate: {str(e)}")
 
 
 def ssm_ssl_adhoc_command():

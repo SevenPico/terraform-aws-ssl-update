@@ -23,6 +23,7 @@ locals {
   adhoc_ssm_enabled       = try(length(var.ssm_adhoc_command), 0) > 0
   named_ssm_enabled       = try(length(var.ssm_named_document), 0) > 0
   acm_certificate_enabled = try(length(var.acm_certificate_arn), 0) > 0
+  acm_certificate_replicas_enabled = try(length(var.acm_certificate_arn_replicas), 0) > 0
 }
 
 
@@ -75,6 +76,9 @@ module "lambda" {
         KEYNAME_CERTIFICATE : var.keyname_certificate
         KEYNAME_PRIVATE_KEY : var.keyname_private_key
         KEYNAME_CERTIFICATE_CHAIN : var.keyname_certificate_chain
+      } : {},
+      try(length(var.acm_certificate_arn_replicas), 0) > 0 ? {
+        ACM_CERTIFICATE_ARN_REPLICAS : jsonencode(var.acm_certificate_arn_replicas)
       } : {},
       try(length(var.ssm_adhoc_command), 0) > 0 ? {
         SSM_SSL_UPDATE_COMMAND : var.ssm_adhoc_command
@@ -148,6 +152,7 @@ module "lambda_policy" {
   iam_policy_statements = merge(
     local.acm_certificate_enabled ? {
       SecretRead = {
+        sid   = "ReadSecrets"
         effect = "Allow"
         actions = [
           "secretsmanager:GetSecretValue",
@@ -157,20 +162,31 @@ module "lambda_policy" {
       }
 
       SecretDecrypt = {
+        sid   = "kmsDecrypt"
         effect = "Allow"
         actions = [
           "kms:Decrypt",
           "kms:DescribeKey",
         ]
         resources = [var.kms_key_arn]
-      }
-
-      ACMImport = {
+      },
+    ACMImport = {
+        sid    = "ACMCertificate"
         effect = "Allow"
         actions = [
           "acm:ImportCertificate"
         ]
         resources = [var.acm_certificate_arn]
+      }
+    }: {},
+    local.acm_certificate_replicas_enabled ? {
+      ACMReplicaImport = {
+        sid    = "ACMReplicaCertificates"
+        effect = "Allow"
+        actions = [
+          "acm:ImportCertificate"
+        ]
+        resources = values(var.acm_certificate_arn_replicas)
       }
     } : {},
 
