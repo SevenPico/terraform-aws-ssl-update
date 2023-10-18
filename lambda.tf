@@ -32,7 +32,7 @@ locals {
 # ------------------------------------------------------------------------------
 module "lambda" {
   source  = "SevenPicoForks/lambda-function/aws"
-  version = "2.0.1"
+  version = "2.0.3"
   context = module.context.self
 
   architectures                       = null

@@ -27,3 +27,7 @@ output "function_arn" {
 output "function_name" {
   value = module.lambda.function_name
 }
+
+output "lambda_log_group" {
+  value = module.lambda.cloudwatch_log_group
+}
