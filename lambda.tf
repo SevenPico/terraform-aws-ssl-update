@@ -19,10 +19,10 @@
 ##  This file contains code written by SevenPico, Inc.
 ## ----------------------------------------------------------------------------
 locals {
-  ecs_update_enabled      = try(length(var.ecs_cluster_arn), 0) > 0
-  adhoc_ssm_enabled       = try(length(var.ssm_adhoc_command), 0) > 0
-  named_ssm_enabled       = try(length(var.ssm_named_document), 0) > 0
-  acm_certificate_enabled = try(length(var.acm_certificate_arn), 0) > 0
+  ecs_update_enabled               = try(length(var.ecs_cluster_arn), 0) > 0
+  adhoc_ssm_enabled                = try(length(var.ssm_adhoc_command), 0) > 0
+  named_ssm_enabled                = try(length(var.ssm_named_document), 0) > 0
+  acm_certificate_enabled          = try(length(var.acm_certificate_arn), 0) > 0
   acm_certificate_replicas_enabled = try(length(var.acm_certificate_arn_replicas), 0) > 0
 }
 
@@ -32,7 +32,7 @@ locals {
 # ------------------------------------------------------------------------------
 module "lambda" {
   source  = "SevenPicoForks/lambda-function/aws"
-  version = "2.0.1"
+  version = "2.0.3"
   context = module.context.self
 
   architectures                       = null
@@ -152,7 +152,7 @@ module "lambda_policy" {
   iam_policy_statements = merge(
     local.acm_certificate_enabled ? {
       SecretRead = {
-        sid   = "ReadSecrets"
+        sid    = "ReadSecrets"
         effect = "Allow"
         actions = [
           "secretsmanager:GetSecretValue",
@@ -162,7 +162,7 @@ module "lambda_policy" {
       }
 
       SecretDecrypt = {
-        sid   = "kmsDecrypt"
+        sid    = "kmsDecrypt"
         effect = "Allow"
         actions = [
           "kms:Decrypt",
@@ -170,7 +170,7 @@ module "lambda_policy" {
         ]
         resources = [var.kms_key_arn]
       },
-    ACMImport = {
+      ACMImport = {
         sid    = "ACMCertificate"
         effect = "Allow"
         actions = [
@@ -178,7 +178,7 @@ module "lambda_policy" {
         ]
         resources = [var.acm_certificate_arn]
       }
-    }: {},
+    } : {},
     local.acm_certificate_replicas_enabled ? {
       ACMReplicaImport = {
         sid    = "ACMReplicaCertificates"

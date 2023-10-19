@@ -52,8 +52,8 @@ variable "acm_certificate_arn" {
 }
 
 variable "acm_certificate_arn_replicas" {
-  type = map(string)
-  default = {}
+  type        = map(string)
+  default     = {}
   description = "When creating multi region certificates use this to pass certificates in the other regions not associated with current provider."
 }
 
